@@ -1,0 +1,179 @@
+CREATE TABLE "usuarios" (
+	"id_usuario"	INTEGER,
+	"nombre"	TEXT,
+	"apellido"	TEXT,
+	"num_telefono"	TEXT,
+	"email"	TEXT,
+	"id_ubicacion"	INTEGER,
+	"username"	TEXT,
+	"password"	INTEGER,
+	"tipo_usuario"	TEXT,
+	PRIMARY KEY("id_usuario" AUTOINCREMENT)
+);
+
+
+CREATE TABLE "ubicacion" (
+	"id_ubicacion"	INTEGER,
+	"provincia"	TEXT,
+	"localidad"	TEXT,
+	"direccion"	TEXT,
+	"codigo_postal"	TEXT,
+	PRIMARY KEY("id_ubicacion" AUTOINCREMENT)
+);
+
+
+CREATE TABLE "stock" (
+	"id_stock"	INTEGER,
+	"id_producto"	INTEGER,
+	"talle"	TEXT,
+	"stock"	INTEGER,
+	PRIMARY KEY("id_stock" AUTOINCREMENT)
+);
+
+
+CREATE TABLE "proveedores" (
+	"id_proveedor"	INTEGER,
+	"nombre"	TEXT,
+	"num_telefono"	TEXT,
+	"email"	TEXT,
+	"nombre_de_contacto"	TEXT,
+	"provincia"	TEXT,
+	"localidad"	TEXT,
+	"direccion"	TEXT,
+	PRIMARY KEY("id_proveedor" AUTOINCREMENT)
+);
+
+
+CREATE TABLE "productos" (
+	"id_producto"	INTEGER,
+	"id_proveedor"	INTEGER,
+	"nombre_producto"	TEXT,
+	"precio"	REAL,
+	"marca"	TEXT,
+	"equipo"	TEXT,
+	"temporada"	TEXT,
+	"jugador"	TEXT,
+	"verion"	TEXT,
+	"color"	TEXT,
+	"imagen"	BLOB,
+	PRIMARY KEY("id_producto" AUTOINCREMENT)
+);
+
+
+CREATE TABLE "favoritos" (
+	"id_favorito"	INTEGER,
+	"id_producto"	INTEGER,
+	"id_usuario"	INTEGER,
+	PRIMARY KEY("id_favorito" AUTOINCREMENT)
+);
+
+
+
+CREATE TABLE "compras" (
+	"id_compra"	INTEGER,
+	"id_producto"	INTEGER,
+	"id_usuario"	INTEGER,
+	"precio_unitario"	REAL,
+	"precio_total"	REAL,
+	"talle"	TEXT,
+	"cantidad"	INTEGER,
+	"tipo_usuario"	TEXT,
+	PRIMARY KEY("id_compra" AUTOINCREMENT)
+);
+
+---------------------------------------------------
+CREATE TABLE "usuarios" (
+	"id_usuario"	INTEGER,
+	"nombre"	TEXT,
+	"apellido"	TEXT,
+	"num_telefono"	TEXT,
+	"email"	TEXT,
+	"id_ubicacion"	INTEGER,
+	"username"	TEXT,
+	"password"	INTEGER,
+	"tipo_usuario"	TEXT,
+	PRIMARY KEY("id_usuario" AUTOINCREMENT),
+	FOREIGN KEY("id_ubicacion") REFERENCES "ubicacion"("id_ubicacion")
+);
+
+CREATE TABLE "ubicacion" (
+	"id_ubicacion"	INTEGER,
+	"provincia"	TEXT,
+	"localidad"	TEXT,
+	"direccion"	TEXT,
+	"codigo_postal"	TEXT,
+	PRIMARY KEY("id_ubicacion" AUTOINCREMENT)
+);
+
+CREATE TABLE "compras" (
+	"id_compra"	INTEGER,
+	"id_producto"	INTEGER,
+	"id_usuario"	INTEGER,
+	"precio_unitario"	REAL,
+	"precio_total"	REAL,
+	"talle"	TEXT,
+	"cantidad"	INTEGER,
+	"tipo_usuario"	TEXT,
+	PRIMARY KEY("id_compra" AUTOINCREMENT),
+	FOREIGN KEY("id_producto") REFERENCES "productos"("id_producto"),
+	FOREIGN KEY("id_usuario") REFERENCES "usuarios"("id_usuario")
+);
+
+CREATE TABLE "stock" (
+	"id_stock"	INTEGER,
+	"id_producto"	INTEGER,
+	"talle"	TEXT,
+	"stock"	INTEGER,
+	FOREIGN KEY("id_producto") REFERENCES "productos"("id_producto"),
+	PRIMARY KEY("id_stock" AUTOINCREMENT)
+);
+
+CREATE TABLE "productos" (
+	"id_producto"	INTEGER,
+	"id_proveedor"	INTEGER,
+	"nombre_producto"	TEXT,
+	"precio"	REAL,
+	"marca"	TEXT,
+	"equipo"	TEXT,
+	"temporada"	TEXT,
+	"jugador"	TEXT,
+	"verion"	TEXT,
+	"color"	TEXT,
+	"imagen"	BLOB,
+	FOREIGN KEY("id_proveedor") REFERENCES "proveedores"("id_proveedor"),
+	PRIMARY KEY("id_producto" AUTOINCREMENT)
+);
+
+CREATE TABLE "proveedores" (
+	"id_proveedor"	INTEGER,
+	"nombre"	TEXT,
+	"num_telefono"	TEXT,
+	"email"	TEXT,
+	"nombre_de_contacto"	TEXT,
+	"provincia"	TEXT,
+	"localidad"	TEXT,
+	"direccion"	TEXT,
+	PRIMARY KEY("id_proveedor" AUTOINCREMENT)
+);
+
+CREATE TABLE "favoritos" (
+	"id_favorito"	INTEGER,
+	"id_producto"	INTEGER,
+	"id_usuario"	INTEGER,
+	PRIMARY KEY("id_favorito" AUTOINCREMENT),
+	FOREIGN KEY("id_producto") REFERENCES "productos"("id_producto"),
+	FOREIGN KEY("id_usuario") REFERENCES "usuarios"("id_usuario")
+);
+
+CREATE TABLE "ventas" (
+	"id_venta"	INTEGER,
+	"id_producto"	INTEGER,
+	"id_usuario"	INTEGER,
+	"precio_unitario"	REAL,
+	"precio_total"	REAL,
+	"talle"	TEXT,
+	"cantidad"	INTEGER,
+	FOREIGN KEY("id_producto") REFERENCES "productos"("id_producto"),
+	FOREIGN KEY("id_usuario") REFERENCES "usuarios"("id_usuario"),
+	PRIMARY KEY("id_venta" AUTOINCREMENT)
+);
