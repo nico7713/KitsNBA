@@ -138,43 +138,69 @@ class InicioCliente:    # Ventana que se muestra al iniciar sesión como cliente
         boton_terminos = Button(frame_acceso_rapido, image=imagen_acuerdo, border=0)
         boton_terminos.place(x=15, y=495)
         
-        # camisetas
-        consulta_sql = "SELECT imagen FROM productos ORDER BY RANDOM()"
-        imagenes_camisetas = cargar_camisetas.cargar_camisetas(consulta_sql) 
-        
-        
-        x = 225
-        y = 100 
-        cuadricula = 1
-        
-        for imagen in imagenes_camisetas:   
-            camiseta = Button(frame_widgets, image=imagen, border=0, width=300, height=400, bg='white')
-            camiseta.place(x=x, y=y)
-            print(imagen)
-            descripcion_camiseta = Label(frame_widgets, text="zzz")
-            descripcion_camiseta.place(x=x, y=y + 410)
-            
-            if cuadricula <= 3:
-                cuadricula += 1
-                x = x + 350
-                
-            if cuadricula > 3:
-                cuadricula = 1
-                x = 225
-                y = y + 480 
-                
-                
+        try:
+            # camisetas
+            consulta_sql = "SELECT imagen, nombre_producto, jugador, precio FROM productos ORDER BY RANDOM()"
+            camisetas = cargar_camisetas.cargar_camisetas(consulta_sql) 
             
             
-class CargarCamisetas:  # clase para cargar las imagenes de las camisetas y una descripción
+            x = 225
+            y = 100 
+            cuadricula = 1
+            
+            for imagen_camiseta, descripcion_camiseta in camisetas:   
+                camiseta = Button(frame_widgets, image=imagen_camiseta, border=0, width=300, height=400, bg='white')
+                camiseta.place(x=x, y=y)
+                descripcion = Label(frame_widgets, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
+                descripcion.place(x=x, y=y + 410)
+                
+                if cuadricula <= 3:
+                    cuadricula += 1
+                    x = x + 350
+                    
+                if cuadricula > 3:
+                    cuadricula = 1
+                    x = 225
+                    y = y + 480
+                    
+        except Exception as e:
+            showwarning("Advertencia", f"Error al momento de iniciar sesión al cargar las camisetas.\n{e}")
+                
+                
+    
+# clase para cargar las imagenes de las camisetas y una descripción (nombre de la camiseta, jugador y precio). 
+# Esta clase esta diseñada para que la consulta SQL seleccione 4 campos (imagen, nombre_producto, jugador, precio)
+class CargarCamisetas:  
     def __init__(self):
         self.imagenes_cargadas = []     # Lista para mantener la referencia a las imagenes
         
     def cargar_camisetas(self, consulta_sql):
-        tabla = coneccion.cursor()
-        tabla.execute(consulta_sql) 
-        imagenes = tabla.fetchall()
-          
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute(consulta_sql) 
+            info_camisetas = tabla.fetchall()
+            camisetas = []
+            
+            for camiseta in info_camisetas:
+                archivo, producto, jugador, precio = camiseta               # desempaquetar la tupla
+                
+                archivo = "camisetas/" + archivo                            # especificar la ruta de las imagenes correctamente
+                imagen_camiseta = Image.open(archivo)                       # crear imagen de la camiseta
+                imagen_camiseta = ImageTk.PhotoImage(imagen_camiseta)       # dejar imagen lista para asignarla como un botón
+                self.imagenes_cargadas.append(imagen_camiseta)              # Agregar las variables de las camisetas para mantener la referencia a las imágenes
+                
+                descripcion_camiseta = f"{producto} {jugador} \n {precio}"  # Crear un título para mostrar debajo de la camiseta
+                datos_camiseta = (imagen_camiseta, descripcion_camiseta)    # Crear una tupla que guarde la imagen de la camiseta y su descripción
+                camisetas.append(datos_camiseta)                            # Agregar tupla a la lista camisetas
+                
+            return camisetas      # devolver las imagenes de las camisetas y su descripción
+                
+        except Exception as e:
+            showwarning("Advertencia", f"Error en la base de datos de KitsNBA al cargar camisetas.\n{e}")
+        
+        
+        
+        """
         camisetas = []
         
         for imagen in imagenes:
@@ -187,7 +213,7 @@ class CargarCamisetas:  # clase para cargar las imagenes de las camisetas y una 
             camisetas.append(imagen_camiseta)               # Agregar imagenes de camisetas a la lista
             
         return camisetas    # Devolver las camisetas    
-        
+        """
 
                      
 # widgets login
@@ -252,5 +278,6 @@ boton_ingresar.place(x=120, y=280)
 label_footer = Label(ventana_login, text="NBA Kits - 2024", fg="snow", bg="gray22", font=("Arial", 10))
 label_footer.place(x=100, y=480)
 
+cargar_camisetas.cargar_camisetas("SELECT imagen, nombre_producto, jugador, precio FROM productos ORDER BY RANDOM()")
 
 ventana_login.mainloop()
