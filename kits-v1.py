@@ -142,15 +142,16 @@ class InicioCliente:    # Ventana que se muestra al iniciar sesión como cliente
             # camisetas
             consulta_sql = "SELECT imagen, nombre_producto, jugador, precio FROM productos ORDER BY RANDOM()"
             camisetas = cargar_camisetas.cargar_camisetas(consulta_sql) 
-            
+            self.botones_camisetas = []
             
             x = 225
             y = 100 
             cuadricula = 1
             
-            for imagen_camiseta, descripcion_camiseta in camisetas:   
-                camiseta = Button(frame_widgets, image=imagen_camiseta, border=0, width=300, height=400, bg='white')
+            for imagen_camiseta, descripcion_camiseta in camisetas:                        # se declara la una variable que contenga la imagen en la función lambda para mantener la referencia
+                camiseta = Button(frame_widgets, image=imagen_camiseta, border=0, width=300, height=400, bg='white', command=lambda imagen=imagen_camiseta : vista_compra.vista_compra(imagen))
                 camiseta.place(x=x, y=y)
+                self.botones_camisetas.append(camiseta)
                 descripcion = Label(frame_widgets, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
                 descripcion.place(x=x, y=y + 410)
                 
@@ -198,23 +199,24 @@ class CargarCamisetas:
         except Exception as e:
             showwarning("Advertencia", f"Error en la base de datos de KitsNBA al cargar camisetas.\n{e}")
         
+                
+                
+class VistaCompra:      # clase para la vista de compra de una camiseta
+    def __init__(self):
+        self.informacion_camiseta = []
+        
+    def vista_compra(self, archivo):
+        ventana_compra = Toplevel()
+        ventana_compra.title("Comprar")
+        ventana_compra.geometry("1366x768")
+        ventana_compra.resizable(False, False)
+        
+        imagen = Label(ventana_compra, image=archivo)
+        imagen.pack()
         
         
-        """
-        camisetas = []
         
-        for imagen in imagenes:
-            ruta = "camisetas/" + imagen[0]
-            imagen_camiseta = Image.open(ruta)
-            #imagen_camiseta = imagen_camiseta.resize((300, 400), Image.LANCZOS)
-            imagen_camiseta = ImageTk.PhotoImage(imagen_camiseta)
-            
-            self.imagenes_cargadas.append(imagen_camiseta)  # Mantener la referencia
-            camisetas.append(imagen_camiseta)               # Agregar imagenes de camisetas a la lista
-            
-        return camisetas    # Devolver las camisetas    
-        """
-
+        
                      
 # widgets login
 ruta_fondo = "imagenes/leBron-dunk.jpg"
@@ -267,6 +269,7 @@ imagen_buscar = ImageTk.PhotoImage(imagen_buscar)
 # instancias
 inicio_cliente = InicioCliente()
 cargar_camisetas = CargarCamisetas()
+vista_compra = VistaCompra()
 
 
 # botón ingresar
