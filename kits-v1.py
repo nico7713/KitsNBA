@@ -140,18 +140,17 @@ class InicioCliente:    # Ventana que se muestra al iniciar sesión como cliente
         
         try:
             # camisetas
-            consulta_sql = "SELECT imagen, nombre_producto, jugador, precio FROM productos ORDER BY RANDOM()"
+            consulta_sql = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()"
             camisetas = cargar_camisetas.cargar_camisetas(consulta_sql) 
-            self.botones_camisetas = []
             
             x = 225
             y = 100 
             cuadricula = 1
             
-            for imagen_camiseta, descripcion_camiseta in camisetas:                        # se declara la una variable que contenga la imagen en la función lambda para mantener la referencia
-                camiseta = Button(frame_widgets, image=imagen_camiseta, border=0, width=300, height=400, bg='white', command=lambda imagen=imagen_camiseta : vista_compra.vista_compra(imagen))
+            for imagen_camiseta, descripcion_camiseta, id_camiseta in camisetas:                        # se declara la una variable que contenga la imagen en la función lambda para mantener la referencia
+                camiseta = Button(frame_widgets, image=imagen_camiseta, border=0, width=300, height=400, bg='white',
+                                  command=lambda imagen=imagen_camiseta, id=id_camiseta : vista_compra.vista_compra(imagen, id))
                 camiseta.place(x=x, y=y)
-                self.botones_camisetas.append(camiseta)
                 descripcion = Label(frame_widgets, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
                 descripcion.place(x=x, y=y + 410)
                 
@@ -183,16 +182,16 @@ class CargarCamisetas:
             camisetas = []
             
             for camiseta in info_camisetas:
-                archivo, producto, jugador, precio = camiseta               # desempaquetar la tupla
+                archivo, producto, jugador, precio, id = camiseta               # desempaquetar la tupla
                 
-                archivo = "camisetas/" + archivo                            # especificar la ruta de las imagenes correctamente
-                imagen_camiseta = Image.open(archivo)                       # crear imagen de la camiseta
-                imagen_camiseta = ImageTk.PhotoImage(imagen_camiseta)       # dejar imagen lista para asignarla como un botón
-                self.imagenes_cargadas.append(imagen_camiseta)              # Agregar las variables de las camisetas para mantener la referencia a las imágenes
+                archivo = "camisetas/" + archivo                                # especificar la ruta de las imagenes correctamente
+                imagen_camiseta = Image.open(archivo)                           # crear imagen de la camiseta
+                imagen_camiseta = ImageTk.PhotoImage(imagen_camiseta)           # dejar imagen lista para asignarla como un botón
+                self.imagenes_cargadas.append(imagen_camiseta)                  # Agregar las variables de las camisetas para mantener la referencia a las imágenes
                 
-                descripcion_camiseta = f"{producto} {jugador} \n {precio}"  # Crear un título para mostrar debajo de la camiseta
-                datos_camiseta = (imagen_camiseta, descripcion_camiseta)    # Crear una tupla que guarde la imagen de la camiseta y su descripción
-                camisetas.append(datos_camiseta)                            # Agregar tupla a la lista camisetas
+                descripcion_camiseta = f"{producto} {jugador} \n {precio}"      # Crear un título para mostrar debajo de la camiseta
+                datos_camiseta = (imagen_camiseta, descripcion_camiseta, id)    # Crear una tupla que guarde la imagen de la camiseta, su descripción y id
+                camisetas.append(datos_camiseta)                                # Agregar tupla a la lista camisetas
                 
             return camisetas      # devolver las imagenes de las camisetas y su descripción
                 
@@ -205,14 +204,29 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
     def __init__(self):
         self.informacion_camiseta = []
         
-    def vista_compra(self, archivo):
+    def obtener_informacion_camiseta(self, id_camiseta):
+        try:
+            consulta_sql = f"SELECT nombre_producto, precio, marca, equipo, temporada, jugador, version, color FROM productos WHERE id_producto = {id_camiseta}"
+            tabla = coneccion.cursor()
+            tabla.execute(consulta_sql) 
+            info_camiseta = tabla.fetchone()
+            return info_camiseta
+        except Exception as e:
+            showwarning("Advertencia", f"Error en la base de datos al entrar a la ventana de compra.\n{e}") 
+        
+            
+    def vista_compra(self, imagen_camiseta, id_camiseta):
+        producto, precio, marca, equipo, temporada, jugador, version, color = self.obtener_informacion_camiseta(id_camiseta)
+        
         ventana_compra = Toplevel()
         ventana_compra.title("Comprar")
         ventana_compra.geometry("1366x768")
         ventana_compra.resizable(False, False)
         
-        imagen = Label(ventana_compra, image=archivo)
-        imagen.pack()
+        muestra_camiseta = Label(ventana_compra, image=imagen_camiseta)
+        muestra_camiseta.place(x=10, y=10)
+        
+        
         
         
         
@@ -281,6 +295,5 @@ boton_ingresar.place(x=120, y=280)
 label_footer = Label(ventana_login, text="NBA Kits - 2024", fg="snow", bg="gray22", font=("Arial", 10))
 label_footer.place(x=100, y=480)
 
-cargar_camisetas.cargar_camisetas("SELECT imagen, nombre_producto, jugador, precio FROM productos ORDER BY RANDOM()")
 
 ventana_login.mainloop()
