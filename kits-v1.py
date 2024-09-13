@@ -58,15 +58,16 @@ class Login:    # Iniciar sesión
 
           
            
-class InicioCliente:    # Ventana que se muestra al iniciar sesión como cliente
+class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar sesión como cliente
     def __init__(self):
         self.nombre_cliente = ""
         self.apellido_cliente = ""
         self.imagenes_guardadas = []
         
-    def inicio_cliente(self, id_cliente, username_cliente):
+    def inicio_cliente(self, id_cliente, username_cliente):     # Método para mostrar la ventana, recibe el id y el nombre de usuario del cliente 
         self.id_cliente = id_cliente
         self.username_cliente = username_cliente
+        
         # ventana inicio cliente
         inicio = Toplevel()
         inicio.title(f"Inicio - {username_cliente}")
@@ -74,7 +75,49 @@ class InicioCliente:    # Ventana que se muestra al iniciar sesión como cliente
         inicio.resizable(False, False)
         inicio.config(bg=color_fondo_cliente)
         
-        # scrollbar
+        # ---- FRAMES ---- (colocados en la ventana toplevel 'inicio')
+        # busqueda
+        frame_busqueda = Frame(inicio, bg="black", border=1, width=1360, height=80)
+        frame_busqueda.pack()
+        
+        # acceso rapido
+        frame_acceso_rapido = Frame(inicio, bg="black", border=1, width=100, height=760)   # para usar el método .place() en un frame, hay que definir su ancho, su alto
+        frame_acceso_rapido.pack(side=LEFT)                                                                # y posicionarlo antes de los demás widgets
+        
+        # ELEMENTOS de frames
+        # elementos del frame_busqueda
+        # barra de busqueda
+        barra_busqueda = Entry(frame_busqueda, width=50, font=fuente_cliente, justify='center')
+        barra_busqueda.place(x=400, y=30)
+        
+        # boton de busqueda
+        boton_busqueda = Button(frame_busqueda, image=imagen_buscar, border=0)
+        boton_busqueda.place(x=870, y=24)
+        
+        # elementos del frame_acceso_rapido
+        # boton modificar cliente
+        boton_modificar_cliente = Button(frame_acceso_rapido, image=imagen_modificar_cliente, border=0)
+        boton_modificar_cliente.place(x=15, y=120)
+        
+        # boton filtrar por
+        boton_filtrar = Button(frame_acceso_rapido, image=imagen_filtrar, border=0)
+        boton_filtrar.place(x=15, y=215)
+        
+        # mis compras
+        boton_mis_compras = Button(frame_acceso_rapido, image=imagen_compras, border=0)
+        boton_mis_compras.place(x=15, y=305)
+        
+        # mis favoritos
+        boton_favoritos = Button(frame_acceso_rapido, image=imagen_favoritos, border=0)
+        boton_favoritos.place(x=15, y=395)
+        
+        # Términos y condiciones
+        boton_terminos = Button(frame_acceso_rapido, image=imagen_acuerdo, border=0)
+        boton_terminos.place(x=15, y=485)
+        
+        # ---- FIN de los frames ---- Al colocar los frames en la ventana original toplevel antes de declarar el scrollbar, estos van a estar fijos y no van a ser deslizados
+        
+        # ---- scrollbar ---- (esta barra va a deslizar por las camisetas) 
         # frame para el canvas
         frame_principal = Frame(inicio)
         frame_principal.pack(fill=BOTH, expand=1)
@@ -97,75 +140,37 @@ class InicioCliente:    # Ventana que se muestra al iniciar sesión como cliente
         # añadir nuevo frame al canvas
         canva.create_window((0,0), window=frame_widgets, anchor="nw")
         
-        # FRAMES
-        # busqueda
-        frame_busqueda = Frame(frame_widgets, bg="black", border=1, width=1360, height=80)
-        frame_busqueda.pack()
+        # ---- FIN scrollbar ---- ahora la barra de deslizamiento esta configurada para deslizar por sobre las camisetas
         
-        # botones del inicio
-        frame_acceso_rapido = Frame(frame_widgets, bg="black", border=1, width=100, height=22760)   # para usar el método .place() en un frame, hay que definir su ancho, su alto
-        frame_acceso_rapido.pack(side=LEFT)                                                                # y posicionarlo antes de los demás widgets
-        
-        
-        # ELEMENTOS de frames
-        # elementos del frame_busqueda
-        # barra de busqueda
-        barra_busqueda = Entry(frame_busqueda, width=50, font=fuente_cliente, justify='center')
-        barra_busqueda.place(x=400, y=30)
-        
-        # boton de busqueda
-        boton_busqueda = Button(frame_busqueda, image=imagen_buscar)
-        boton_busqueda.place(x=870, y=22)
-        
-        # elementos del frame botones_inicio
-        # boton modificar cliente
-        boton_modificar_cliente = Button(frame_acceso_rapido, image=imagen_modificar_cliente, border=0)
-        boton_modificar_cliente.place(x=15, y=130)
-        
-        # boton filtrar por
-        boton_filtrar = Button(frame_acceso_rapido, image=imagen_filtrar, border=0)
-        boton_filtrar.place(x=15, y=225)
-        
-        # mis compras
-        boton_mis_compras = Button(frame_acceso_rapido, image=imagen_compras, border=0)
-        boton_mis_compras.place(x=15, y=315)
-        
-        # mis favoritos
-        boton_favoritos = Button(frame_acceso_rapido, image=imagen_favoritos, border=0)
-        boton_favoritos.place(x=15, y=405)
-        
-        # Términos y condiciones
-        boton_terminos = Button(frame_acceso_rapido, image=imagen_acuerdo, border=0)
-        boton_terminos.place(x=15, y=495)
-        
+        # --- colocar camisetas ----
         try:
             # camisetas
             consulta_sql = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()"
             camisetas = cargar_camisetas.cargar_camisetas(consulta_sql) 
             
-            x = 225
-            y = 100 
-            cuadricula = 1
+            fila = 0
+            columna = 0 
             
-            for imagen_camiseta, descripcion_camiseta, id_camiseta in camisetas:                        # se declara la una variable que contenga la imagen en la función lambda para mantener la referencia
+            for imagen_camiseta, descripcion_camiseta, id_camiseta in camisetas: # se declara la variable que contenga la imagen en la función lambda para mantener la referencia
                 camiseta = Button(frame_widgets, image=imagen_camiseta, border=0, width=300, height=400, bg='white',
                                   command=lambda imagen=imagen_camiseta, id=id_camiseta : vista_compra.vista_compra(imagen, id))
-                camiseta.place(x=x, y=y)
-                descripcion = Label(frame_widgets, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
-                descripcion.place(x=x, y=y + 410)
+                camiseta.grid(row=fila, column=columna, padx=60, pady=10)
                 
-                if cuadricula <= 3:
-                    cuadricula += 1
-                    x = x + 350
+                descripcion = Label(frame_widgets, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
+                descripcion.grid(row=fila + 1, column=columna)
+                
+                if columna < 2:
+                    columna += 1
                     
-                if cuadricula > 3:
-                    cuadricula = 1
-                    x = 225
-                    y = y + 480
+                elif columna == 2:
+                    columna = 0
+                    fila += 2
                     
         except Exception as e:
             showwarning("Advertencia", f"Error al momento de iniciar sesión al cargar las camisetas.\n{e}")
-                
+            
+        # ---- FIN camisetas ----
+             
                 
     
 # clase para cargar las imagenes de las camisetas y una descripción (nombre de la camiseta, jugador y precio). 
