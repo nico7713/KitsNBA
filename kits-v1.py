@@ -179,7 +179,7 @@ class CargarCamisetas:
     def __init__(self):
         self.imagenes_cargadas = []     # Lista para mantener la referencia a las imagenes
         
-    def cargar_camisetas(self, consulta_sql):
+    def cargar_camisetas(self, consulta_sql, modificar_tamaño=False, tamaño_imagenes=(400, 300)):    # Al poner parametros ya definidos, no hay un error si no los pasamos
         try:
             tabla = coneccion.cursor()
             tabla.execute(consulta_sql) 
@@ -191,6 +191,8 @@ class CargarCamisetas:
                 
                 archivo = "camisetas/" + archivo                                # especificar la ruta de las imagenes correctamente
                 imagen_camiseta = Image.open(archivo)                           # crear imagen de la camiseta
+                if modificar_tamaño:                                            # Modificar el tamaño de la camiseta si el usuario lo especificó
+                    imagen_camiseta = imagen_camiseta.resize(tamaño_imagenes, Image.LANCZOS)
                 imagen_camiseta = ImageTk.PhotoImage(imagen_camiseta)           # dejar imagen lista para asignarla como un botón
                 self.imagenes_cargadas.append(imagen_camiseta)                  # Agregar las variables de las camisetas para mantener la referencia a las imágenes
                 
@@ -211,7 +213,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         
     def obtener_informacion_camiseta(self, id_camiseta):
         try:
-            consulta_sql = f"SELECT nombre_producto, precio, marca, equipo, temporada, jugador, version, color FROM productos WHERE id_producto = {id_camiseta}"
+            consulta_sql = f"SELECT nombre_producto, precio, marca, equipo, temporada, jugador, version, color, descripcion FROM productos WHERE id_producto = {id_camiseta}"
             tabla = coneccion.cursor()
             tabla.execute(consulta_sql) 
             info_camiseta = tabla.fetchone()
@@ -221,7 +223,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         
                            
     def vista_compra(self, imagen_camiseta, id_camiseta):
-        producto, precio, marca, equipo, temporada, jugador, version, color = self.obtener_informacion_camiseta(id_camiseta)
+        producto, precio, marca, equipo, temporada, jugador, version, color, descripcion = self.obtener_informacion_camiseta(id_camiseta)
         
         ventana_compra = Toplevel()
         ventana_compra.title(f"Comprar {producto} {jugador} {color}")
@@ -252,9 +254,14 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         
         label_color = Label(ventana_compra, text=f"Color: {color}", bg='white', font=("Calibri", 12))
         label_color.place(x=350, y=190)
+         
+        area_descripcion = Text(ventana_compra, bg='white', font=("Calibri", 12), width=40, height=10, border=0, wrap='word')
+        area_descripcion.place(x=350, y=220)    
+        area_descripcion.insert("1.0", f"Descripción: {descripcion}")
+        area_descripcion.config(state='disabled')
         
         label_precio = Label(ventana_compra, text=f"Precio: {precio}", bg='white', font=("Calibri", 16))
-        label_precio.place(x=350, y=240)
+        label_precio.place(x=350, y=460)
         
         # botones de compra y añadir a favoritos
         boton_compra = Button(ventana_compra, text="Comprar ahora", width=24, bg="Green", fg="white", font=("Century Gothic", 16))
@@ -270,38 +277,38 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         label_xs = Label(ventana_compra, text="XS", bg='white', font=("Calibri", 14))
         label_xs.place(x=10, y=560)
         
-        combo_xs = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14))    
+        combo_xs = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_xs.place(x=10, y=590)
         
         # S
         label_s = Label(ventana_compra, text="S", bg='white', font=("Calibri", 14))
         label_s.place(x=60, y=560)
         
-        combo_s = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14))    
+        combo_s = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_s.place(x=60, y=590)
         # M
         label_m = Label(ventana_compra, text="M", bg='white', font=("Calibri", 14))
         label_m.place(x=110, y=560)
         
-        combo_m = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14))    
+        combo_m = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_m.place(x=110, y=590)
         # L
         label_l = Label(ventana_compra, text="L", bg='white', font=("Calibri", 14))
         label_l.place(x=160, y=560)
         
-        combo_l = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14))    
+        combo_l = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_l.place(x=160, y=590)
         # XL
         label_xl = Label(ventana_compra, text="XL", bg='white', font=("Calibri", 14))
         label_xl.place(x=210, y=560)
         
-        combo_xl = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14))    
+        combo_xl = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_xl.place(x=210, y=590)
         # XXL
         label_xxl = Label(ventana_compra, text="XXL", bg='white', font=("Calibri", 14))
         label_xxl.place(x=260, y=560)
         
-        combo_xxl = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14))    
+        combo_xxl = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_xxl.place(x=260, y=590)
         
         
@@ -335,32 +342,34 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar la información de talles\n{e}")      
             
+        try:
+            # productos relacionados
+            label_productos_relacionados = Label(ventana_compra, text="Ver más productos", bg='white', font=("Calibri", 12))
+            label_productos_relacionados.place(x=900, y=10)  # seleccionar productos relacionados por marca y version
+            consulta_productos_relacionados = f"SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE marca = '{marca}' and version = '{version}' and id_producto != '{id_camiseta}' ORDER BY RANDOM() LIMIT 4"
+            camisetas = cargar_camisetas.cargar_camisetas(consulta_sql=consulta_productos_relacionados, modificar_tamaño=True, tamaño_imagenes=(280, 350)) 
             
-        # productos relacionados
-        label_productos_relacionados = Label(ventana_compra, text="Ver más productos", bg='white', font=("Calibri", 12))
-        label_productos_relacionados.place(x=900, y=10)  # seleccionar productos relacionados por marca y version
-        consulta_productos_relacionados = f"SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE marca = '{marca}' and version = '{version}' and id_producto != '{id_camiseta}' ORDER BY RANDOM() LIMIT 4"
-        camisetas = cargar_camisetas.cargar_camisetas(consulta_productos_relacionados) 
-        
-        x = 650
-        y = 60
-        cuadricula = 1
-        
-        for imagen, descripcion, id in camisetas:
-            camiseta_recomendada = Button(ventana_compra, image=imagen, bg='white', border=0, width=300, height=400)
-            camiseta_recomendada.place(x=x, y=y)
+            x = 720
+            y = 60
+            cuadricula = 1
             
-            descripcion_camiseta = Label(ventana_compra, text=descripcion, bg='white', font=("Calibri", 12))
-            descripcion_camiseta.place(x=x, y=y + 410)
-            
-            if cuadricula == 1:
-                cuadricula += 1
-                x += 350
+            for imagen, descripcion, id in camisetas:
+                camiseta_recomendada = Button(ventana_compra, image=imagen, bg='white', border=0)
+                camiseta_recomendada.place(x=x, y=y)
                 
-            elif cuadricula >= 2:
-                cuadricula = 1
-                x = 650
-                y += 480
+                descripcion_camiseta = Label(ventana_compra, text=descripcion, bg='white', font=("Calibri", 12))
+                descripcion_camiseta.place(x=x, y=y + 410)
+                
+                if cuadricula == 1:
+                    cuadricula += 1
+                    x += 350
+                    
+                elif cuadricula >= 2:
+                    cuadricula = 1
+                    x = 720
+                    y += 480
+        except Exception as e:
+            showwarning("Advertencia", f"Error al cargar camisetas relacionadas.\n{e}") 
                 
         
                      
