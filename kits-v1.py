@@ -6,10 +6,12 @@ from PIL import Image, ImageTk
 import sqlite3
 
 # ventana de inicio
+icono = "icono-logo.ico"
 ventana_login = Tk()
 ventana_login.title("Login")
 ventana_login.geometry("300x500")
 ventana_login.resizable(False, False)
+ventana_login.iconbitmap(icono) 
 
 
 # conección a la base de datos
@@ -64,6 +66,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         self.apellido_cliente = ""
         self.imagenes_guardadas = []
         
+        
     def inicio_cliente(self, id_cliente, username_cliente):     # Método para mostrar la ventana, recibe el id y el nombre de usuario del cliente 
         self.id_cliente = id_cliente
         self.username_cliente = username_cliente
@@ -74,6 +77,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         inicio.geometry("1360x760")
         inicio.resizable(False, False)
         inicio.config(bg=color_fondo_cliente)
+        inicio.iconbitmap(icono)
         
         # ---- FRAMES ---- (colocados en la ventana toplevel 'inicio')
         # busqueda
@@ -140,6 +144,13 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         # añadir nuevo frame al canvas
         canva.create_window((0,0), window=frame_widgets, anchor="nw")
         
+         # ----- Evento para usar la rueda del mouse -----
+        def on_mouse_wheel(event):
+            canva.yview_scroll(-1 * int((event.delta / 120)), "units")
+            
+        # Vincular la rueda del mouse al canvas
+        canva.bind_all("<MouseWheel>", on_mouse_wheel)
+        
         # ---- FIN scrollbar ---- ahora la barra de deslizamiento esta configurada para deslizar por sobre las camisetas
         
         # --- colocar camisetas ----
@@ -152,9 +163,12 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
             columna = 0 
             
             for imagen_camiseta, descripcion_camiseta, id_camiseta in camisetas: # se declara la variable que contenga la imagen en la función lambda para mantener la referencia
-                camiseta = Button(frame_widgets, image=imagen_camiseta, border=0, width=300, height=400, bg='white',
+                camiseta = Button(frame_widgets, image=imagen_camiseta, border=0, width=300, height=400, bg='white', cursor="hand2",
                                   command=lambda imagen=imagen_camiseta, id=id_camiseta : vista_compra.vista_compra(imagen, id))
                 camiseta.grid(row=fila, column=columna, padx=60, pady=10)
+                
+                #camiseta.bind("<Enter>", lambda e: e.widget.config(bg='gray', highlightthickness=0, highlightbackground="blue"))
+                #camiseta.bind("<Leave>", lambda e: e.widget.config(bg='white', highlightthickness=0))
                 
                 descripcion = Label(frame_widgets, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
                 descripcion.grid(row=fila + 1, column=columna)
@@ -230,6 +244,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         ventana_compra.geometry("1366x768")
         ventana_compra.resizable(False, False)
         ventana_compra.config(bg='white')
+        ventana_compra.iconbitmap(icono)
         
         muestra_camiseta = Label(ventana_compra, image=imagen_camiseta)
         muestra_camiseta.place(x=10, y=10)
@@ -429,7 +444,7 @@ vista_compra = VistaCompra()
 
 # botón ingresar
 ingresar = Login()
-boton_ingresar = Button(ventana_login, text="Ingresar", width=8, command=ingresar.login)
+boton_ingresar = Button(ventana_login, text="Ingresar", width=8, cursor="hand2", command=ingresar.login)
 boton_ingresar.place(x=120, y=280)
 
 # pie de página
