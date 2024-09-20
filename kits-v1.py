@@ -64,66 +64,122 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
     def __init__(self):
         self.nombre_cliente = ""
         self.apellido_cliente = ""
-        self.imagenes_guardadas = []
         
-        
-    def inicio_cliente(self, id_cliente, username_cliente):     # Método para mostrar la ventana, recibe el id y el nombre de usuario del cliente 
+    # Método para mostrar la ventana, recibe el id y el nombre de usuario del cliente, más una consulta sql usada para buscar
+    def inicio_cliente(self, id_cliente, username_cliente, consulta_sql = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()"):     
         self.id_cliente = id_cliente
         self.username_cliente = username_cliente
         
-        # ventana inicio cliente
+        # ventana inicio cliente - creación y configuración
         inicio = Toplevel()
-        inicio.title(f"Inicio - {username_cliente}")
+        inicio.title(f"Inicio - {self.username_cliente}")
         inicio.geometry("1360x760")
         inicio.resizable(False, False)
         inicio.config(bg=color_fondo_cliente)
         inicio.iconbitmap(icono)
         
+        # llamar a métodos para la interfaz - estos métodos añaden los widgets necesarios a la ventana 'inicio'
+        ventana_inicio = self.ventana_y_frames(inicio)
+        frame_camisetas = self.configurar_scrollbar(ventana_inicio)
+        self.colocar_camisetas(frame_camisetas, consulta_sql)
+        
+    def ventana_y_frames(self, ventana_inicial): 
         # ---- FRAMES ---- (colocados en la ventana toplevel 'inicio')
         # busqueda
-        frame_busqueda = Frame(inicio, bg="black", border=1, width=1360, height=80)
+        frame_busqueda = Frame(ventana_inicial, bg="black", border=1, width=1360, height=80)
         frame_busqueda.pack()
         
         # acceso rapido
-        frame_acceso_rapido = Frame(inicio, bg="black", border=1, width=100, height=760)   # para usar el método .place() en un frame, hay que definir su ancho, su alto
+        frame_acceso_rapido = Frame(ventana_inicial, bg="black", border=1, width=100, height=760)   # para usar el método .place() en un frame, hay que definir su ancho, su alto
         frame_acceso_rapido.pack(side=LEFT)                                                                # y posicionarlo antes de los demás widgets
         
         # ELEMENTOS de frames
         # elementos del frame_busqueda
         # barra de busqueda
-        barra_busqueda = Entry(frame_busqueda, width=50, font=fuente_cliente, justify='center')
-        barra_busqueda.place(x=400, y=30)
+        self.barra_busqueda = Entry(frame_busqueda, width=50, font=fuente_cliente, justify='center')
+        self.barra_busqueda.place(x=400, y=30)
         
         # boton de busqueda
-        boton_busqueda = Button(frame_busqueda, image=imagen_buscar, border=0)
+        boton_busqueda = Button(frame_busqueda, image=imagen_buscar, border=0, cursor="hand2", command=lambda : busqueda(self, False))
         boton_busqueda.place(x=870, y=24)
         
+        # volver (cargar de nuevo las camisetas)
+        boton_volver = Button(frame_busqueda, image=imagen_volver, bg='black', border=0, cursor="hand2", command=lambda : busqueda(self, True))
+        boton_volver.place(x=15, y=15) 
+        
+        boton_volver.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
+        boton_volver.bind("<Leave>", lambda e: e.widget.config(bg="black", highlightthickness=0))
+        
+        def busqueda(self, volver=False):
+            criterio = self.barra_busqueda.get()
+            if criterio and not volver:
+                consulta_sql = f'''
+                SELECT imagen, nombre_producto, jugador, precio, id_producto
+                FROM productos
+                WHERE marca LIKE "%{criterio}%"
+                OR jugador LIKE "%{criterio}%"
+                OR equipo LIKE "%{criterio}%"
+                OR version LIKE "%{criterio}%"
+                OR nombre_producto LIKE "%{criterio}%"
+                ORDER BY RANDOM() 
+                                '''
+            if volver:
+                consulta_sql = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()"
+            
+            if criterio or volver: 
+                for widget in ventana_inicial.winfo_children():
+                    widget.destroy()
+                        
+                ventana_inicio = self.ventana_y_frames(ventana_inicial)
+                self.barra_busqueda.insert(0, criterio)
+                frame_camisetas = self.configurar_scrollbar(ventana_inicio)
+                self.colocar_camisetas(frame_camisetas, consulta_sql)
+            
+              
         # elementos del frame_acceso_rapido
         # boton modificar cliente
-        boton_modificar_cliente = Button(frame_acceso_rapido, image=imagen_modificar_cliente, border=0)
+        boton_modificar_cliente = Button(frame_acceso_rapido, image=imagen_modificar_cliente, cursor="hand2", border=0)
         boton_modificar_cliente.place(x=15, y=120)
         
+        boton_modificar_cliente.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
+        boton_modificar_cliente.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
+        
         # boton filtrar por
-        boton_filtrar = Button(frame_acceso_rapido, image=imagen_filtrar, border=0)
+        boton_filtrar = Button(frame_acceso_rapido, image=imagen_filtrar, cursor="hand2", border=0)
         boton_filtrar.place(x=15, y=215)
         
+        boton_filtrar.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
+        boton_filtrar.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
+        
         # mis compras
-        boton_mis_compras = Button(frame_acceso_rapido, image=imagen_compras, border=0)
+        boton_mis_compras = Button(frame_acceso_rapido, image=imagen_compras, cursor="hand2", border=0)
         boton_mis_compras.place(x=15, y=305)
         
+        boton_mis_compras.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
+        boton_mis_compras.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
+        
         # mis favoritos
-        boton_favoritos = Button(frame_acceso_rapido, image=imagen_favoritos, border=0)
+        boton_favoritos = Button(frame_acceso_rapido, image=imagen_favoritos, cursor="hand2", border=0)
         boton_favoritos.place(x=15, y=395)
         
+        boton_favoritos.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
+        boton_favoritos.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
+        
         # Términos y condiciones
-        boton_terminos = Button(frame_acceso_rapido, image=imagen_acuerdo, border=0)
+        boton_terminos = Button(frame_acceso_rapido, image=imagen_acuerdo, cursor="hand2", border=0)
         boton_terminos.place(x=15, y=485)
         
+        boton_terminos.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
+        boton_terminos.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
+        
+        return ventana_inicial      # retornamos la ventana original de inicio con los frames de busqueda y acceso rápido añadidos
         # ---- FIN de los frames ---- Al colocar los frames en la ventana original toplevel antes de declarar el scrollbar, estos van a estar fijos y no van a ser deslizados
         
+        
+    def configurar_scrollbar(self, ventana_principal):
         # ---- scrollbar ---- (esta barra va a deslizar por las camisetas) 
         # frame para el canvas
-        frame_principal = Frame(inicio)
+        frame_principal = Frame(ventana_principal)
         frame_principal.pack(fill=BOTH, expand=1)
         
         # canvas
@@ -151,41 +207,48 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         # Vincular la rueda del mouse al canvas
         canva.bind_all("<MouseWheel>", on_mouse_wheel)
         
+        return frame_widgets    # retornamos un frame con un scrollbar listo para que las camisetas se coloquen acá y sean deslizadas 
         # ---- FIN scrollbar ---- ahora la barra de deslizamiento esta configurada para deslizar por sobre las camisetas
         
+        
         # --- colocar camisetas ----
+    def colocar_camisetas(self, frame_camisetas, consulta_sql):
         try:
-            # camisetas
-            consulta_sql = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()"
+            # lista camisetas
             camisetas = cargar_camisetas.cargar_camisetas(consulta_sql) 
             
-            fila = 0
-            columna = 0 
+            if camisetas:
             
-            for imagen_camiseta, descripcion_camiseta, id_camiseta in camisetas: # se declara la variable que contenga la imagen en la función lambda para mantener la referencia
-                camiseta = Button(frame_widgets, image=imagen_camiseta, border=0, width=300, height=400, bg='white', cursor="hand2",
-                                  command=lambda imagen=imagen_camiseta, id=id_camiseta : vista_compra.vista_compra(imagen, id))
-                camiseta.grid(row=fila, column=columna, padx=60, pady=10)
+                fila = 0
+                columna = 0 
                 
-                #camiseta.bind("<Enter>", lambda e: e.widget.config(bg='gray', highlightthickness=0, highlightbackground="blue"))
-                #camiseta.bind("<Leave>", lambda e: e.widget.config(bg='white', highlightthickness=0))
-                
-                descripcion = Label(frame_widgets, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
-                descripcion.grid(row=fila + 1, column=columna)
-                
-                if columna < 2:
-                    columna += 1
+                for imagen_camiseta, descripcion_camiseta, id_camiseta in camisetas: # se declara la variable que contenga la imagen en la función lambda para mantener la referencia
+                    camiseta = Button(frame_camisetas, image=imagen_camiseta, border=0, width=300, height=400, bg='white', cursor="hand2",
+                                    command=lambda imagen=imagen_camiseta, id=id_camiseta : vista_compra.vista_compra(imagen, id))
+                    camiseta.grid(row=fila, column=columna, padx=60, pady=10)
                     
-                elif columna == 2:
-                    columna = 0
-                    fila += 2
+                    camiseta.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightbackground="blue"))
+                    camiseta.bind("<Leave>", lambda e: e.widget.config(bg="white"))
+                    
+                    descripcion = Label(frame_camisetas, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
+                    descripcion.grid(row=fila + 1, column=columna)
+                    
+                    if columna < 2:
+                        columna += 1
+                        
+                    elif columna == 2:
+                        columna = 0
+                        fila += 2
+                        
+            else:
+                sin_resultados = Label(frame_camisetas, text=":/\nLo sentimos, no se encontraron resultados.", bg="white", font=("Calibri", 28))
+                sin_resultados.pack(padx=300 ,pady=300)
                     
         except Exception as e:
             showwarning("Advertencia", f"Error al momento de iniciar sesión al cargar las camisetas.\n{e}")
             
         # ---- FIN camisetas ----
-             
-                
+        
     
 # clase para cargar las imagenes de las camisetas y una descripción (nombre de la camiseta, jugador y precio). 
 # Esta clase esta diseñada para que la consulta SQL seleccione 4 campos (imagen, nombre_producto, jugador, precio)
@@ -434,6 +497,10 @@ imagen_acuerdo = ImageTk.PhotoImage(imagen_acuerdo)
 ruta_buscar = "botones/buscar.png"
 imagen_buscar = Image.open(ruta_buscar)
 imagen_buscar = ImageTk.PhotoImage(imagen_buscar)
+
+ruta_volver = "botones/volver2.png"
+imagen_volver = Image.open(ruta_volver)
+imagen_volver = ImageTk.PhotoImage(imagen_volver)
  
 
 # instancias
