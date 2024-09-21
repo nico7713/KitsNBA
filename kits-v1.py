@@ -70,6 +70,9 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         self.id_cliente = id_cliente
         self.username_cliente = username_cliente
         
+        self.nombre_cliente, self.apellido_cliente = self.obtener_nombre_cliente((id_cliente,))   # desempaquetar nombre y apellido del usuario 
+        
+        self.obtener_nombre_cliente((id_cliente, )) 
         # ventana inicio cliente - creación y configuración
         inicio = Toplevel()
         inicio.title(f"Inicio - {self.username_cliente}")
@@ -104,11 +107,17 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_busqueda.place(x=870, y=24)
         
         # volver (cargar de nuevo las camisetas)
-        boton_volver = Button(frame_busqueda, image=imagen_volver, bg='black', border=0, cursor="hand2", command=lambda : busqueda(self, True))
+        boton_volver = Button(frame_busqueda, image=imagen_volver, bg="black", border=0, cursor="hand2", command=lambda : busqueda(self, True))
         boton_volver.place(x=15, y=15) 
         
-        boton_volver.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
+        boton_volver.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
         boton_volver.bind("<Leave>", lambda e: e.widget.config(bg="black", highlightthickness=0))
+        
+        boton_nombre_de_usuario = Button(frame_busqueda, text=f"{self.nombre_cliente} {self.apellido_cliente}", bg="black", fg="white", font=("Century Gothic", 12), border=0, cursor="hand2")
+        boton_nombre_de_usuario.place(x=1150, y=25)
+        
+        boton_nombre_de_usuario.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
+        boton_nombre_de_usuario.bind("<Leave>", lambda e: e.widget.config(bg="black", highlightthickness=0))
         
         def busqueda(self, volver=False):
             criterio = self.barra_busqueda.get()
@@ -138,11 +147,11 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
               
         # elementos del frame_acceso_rapido
         # boton modificar cliente
-        boton_modificar_cliente = Button(frame_acceso_rapido, image=imagen_modificar_cliente, cursor="hand2", border=0)
-        boton_modificar_cliente.place(x=15, y=120)
+        boton_modificar_ubicacion = Button(frame_acceso_rapido, image=imagen_modificar_ubicacion, cursor="hand2", border=0)
+        boton_modificar_ubicacion.place(x=15, y=120)
         
-        boton_modificar_cliente.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
-        boton_modificar_cliente.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
+        boton_modificar_ubicacion.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
+        boton_modificar_ubicacion.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
         
         # boton filtrar por
         boton_filtrar = Button(frame_acceso_rapido, image=imagen_filtrar, cursor="hand2", border=0)
@@ -227,9 +236,6 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
                                     command=lambda imagen=imagen_camiseta, id=id_camiseta : vista_compra.vista_compra(imagen, id))
                     camiseta.grid(row=fila, column=columna, padx=60, pady=10)
                     
-                    camiseta.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightbackground="blue"))
-                    camiseta.bind("<Leave>", lambda e: e.widget.config(bg="white"))
-                    
                     descripcion = Label(frame_camisetas, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
                     descripcion.grid(row=fila + 1, column=columna)
                     
@@ -248,6 +254,15 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
             showwarning("Advertencia", f"Error al momento de iniciar sesión al cargar las camisetas.\n{e}")
             
         # ---- FIN camisetas ----
+        
+    def obtener_nombre_cliente(self, id_usuario):
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("SELECT nombre, apellido FROM usuarios WHERE id_usuario = ?", id_usuario) 
+            datos = tabla.fetchone()
+            return datos
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"No pudimos obtener el nombre y apellido del usuario.\n{e}")
         
     
 # clase para cargar las imagenes de las camisetas y una descripción (nombre de la camiseta, jugador y precio). 
@@ -474,9 +489,9 @@ color_fondo_cliente = "snow"
 fuente_cliente = ("Century Gothic", 12)
 
 # botones con imagenes
-ruta_imagen_modificar_cliente = "botones/usuario-cliente-inicio2.png"
-imagen_modificar_cliente = Image.open(ruta_imagen_modificar_cliente)
-imagen_modificar_cliente = ImageTk.PhotoImage(imagen_modificar_cliente)
+ruta_imagen_modificar_ubicacion = "botones/editar-ubicacion2.png"
+imagen_modificar_ubicacion = Image.open(ruta_imagen_modificar_ubicacion)
+imagen_modificar_ubicacion = ImageTk.PhotoImage(imagen_modificar_ubicacion)
 
 ruta_filtrar = "botones/filtrar.png"
 imagen_filtrar = Image.open(ruta_filtrar)
