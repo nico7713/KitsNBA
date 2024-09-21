@@ -113,7 +113,9 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_volver.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
         boton_volver.bind("<Leave>", lambda e: e.widget.config(bg="black", highlightthickness=0))
         
-        boton_nombre_de_usuario = Button(frame_busqueda, text=f"{self.nombre_cliente} {self.apellido_cliente}", bg="black", fg="white", font=("Century Gothic", 12), border=0, cursor="hand2")
+        # botón para modificar la información personal del usuario
+        boton_nombre_de_usuario = Button(frame_busqueda, text=f"{self.nombre_cliente} {self.apellido_cliente}", bg="black", fg="white", font=("Century Gothic", 12),
+                                         border=0, cursor="hand2", command=lambda : editar_cliente.interfaz_editar_datos_principales(self.id_cliente))
         boton_nombre_de_usuario.place(x=1150, y=25)
         
         boton_nombre_de_usuario.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
@@ -146,7 +148,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
             
               
         # elementos del frame_acceso_rapido
-        # boton modificar cliente
+        # boton modificar ubicacion cliente
         boton_modificar_ubicacion = Button(frame_acceso_rapido, image=imagen_modificar_ubicacion, cursor="hand2", border=0)
         boton_modificar_ubicacion.place(x=15, y=120)
         
@@ -297,7 +299,115 @@ class CargarCamisetas:
         except Exception as e:
             showwarning("Advertencia", f"Error en la base de datos de KitsNBA al cargar camisetas.\n{e}")
         
+        
+        
+class EditarCliente:
+    def __init__(self):
+        self.nombre = ""
+        self.apellido = ""
+        self.telefono = ""
+        self.email = ""
+        
+    def obtener_datos_cliente(self, id_usuario):
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("SELECT nombre, apellido, num_telefono, email FROM usuarios WHERE id_usuario = ?", (id_usuario, )) 
+            datos_cliente = tabla.fetchone()
+            return datos_cliente
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error al acceder a los datos del cliente.\n{e}")
+        
+    def interfaz_editar_datos_principales(self, id_usuario):
+        nombre, apellido, telefono, email = self.obtener_datos_cliente(id_usuario) 
+        editar_cliente = Toplevel()
+        editar_cliente.title(f"Editar cliente - {nombre} {apellido}") 
+        editar_cliente.geometry("510x300")
+        editar_cliente.resizable(False, False)
+        editar_cliente.config(bg="white")
+        editar_cliente.iconbitmap(icono)
+        
+        label_nombre = Label(editar_cliente, text="Nombre", bg="white", font=("Century Gothic", 12))
+        label_nombre.place(x=10, y=10)
+        
+        self.entry_nombre = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_nombre.place(x=10, y=40)
+        
+        label_apellido = Label(editar_cliente, text="Apellido", bg="white", font=("Century Gothic", 12))
+        label_apellido.place(x=10, y=80)
+        
+        self.entry_apellido = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_apellido.place(x=10, y=110)
+        
+        label_telefono = Label(editar_cliente, text="Número de Teléfono", bg="white", font=("Century Gothic", 12))
+        label_telefono.place(x=10, y=150)
+        
+        self.entry_telefono = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_telefono.place(x=10, y=180)
+        
+        label_email = Label(editar_cliente, text="Email", bg="white", font=("Century Gothic", 12))
+        label_email.place(x=10, y=220)
+        
+        self.entry_email = Entry(editar_cliente, width=25, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_email.place(x=10, y=250)
+        
+        # insertar datos iniciales
+        self.entry_nombre.insert(0, nombre)
+        self.entry_apellido.insert(0, apellido)
+        self.entry_telefono.insert(0, telefono)
+        self.entry_email.insert(0, email) 
+        
+        # botones
+        boton_confirmar_cambios = Button(editar_cliente, text="Guardar Cambios", bg="dark blue", fg="white", font=("Century Gothic", 12), width=17,
+                                         command=lambda : self.editar_datos_principales(id_usuario, editar_cliente))
+        boton_confirmar_cambios.place(x=280, y=215)
+        
+        boton_restaurar_clave = Button(editar_cliente, text="Restaurar Contraseña", bg="gray22", fg="white", font=("Century Gothic", 12), width=17)
+        boton_restaurar_clave.place(x=280, y=255)
+        
+        logo_proyecto = Label(editar_cliente, image=imagen_proyecto)
+        logo_proyecto.place(x=200, y=40)
+         
+         
+    def editar_datos_principales(self, id_usuario, ventana):
+        nuevo_nombre = self.entry_nombre.get()
+        nuevo_apellido = self.entry_apellido.get()
+        nuevo_telefono = self.entry_telefono.get()
+        nuevo_email = self.entry_email.get()
+        
+        if nuevo_nombre and nuevo_apellido and nuevo_telefono and nuevo_email:
+        
+            if "@" not in nuevo_email or nuevo_email.count("@") != 1 or "." not in nuevo_email.split("@")[1]:
+                showwarning("Email invalido", "Por favor escriba una dirección de correo electrónico válida.")
+                return
                 
+            if not nuevo_telefono.isnumeric() or len(nuevo_telefono) < 8:
+                showwarning("Número de teléfono inválido", "Por favor escriba un número de teléfono correcto.")
+                return
+            
+            if not nuevo_nombre.isalpha():
+                showwarning("Nombre inválido", "El nombre no debe contener números ni caracteres especiales.")
+                return
+            
+            if not nuevo_apellido.isalpha():
+                showwarning("Apellido inválido", "El apellido no debe contener números ni caracteres especiales.")
+                return
+            
+            confirmar = askyesno("Confirmar", "¿Estás seguro de que deseas modificar tu información de usuario?")
+            
+            if confirmar:
+                try:
+                    actualizacion = (nuevo_nombre, nuevo_apellido, nuevo_telefono, nuevo_email, id_usuario)
+                    tabla = coneccion.cursor()
+                    tabla.execute("UPDATE usuarios SET nombre = ?, apellido = ?, num_telefono = ?, email = ? WHERE id_usuario = ?", actualizacion)
+                    coneccion.commit()
+                except sqlite3.OperationalError as e:
+                    showwarning("Advertencia", f"Error al actualizar información del usuario.\n{e}")
+                    
+                showinfo("Actualización correcta.", "Los datos se actualizaron correctamente.")
+                ventana.destroy()
+                
+        else:
+            showwarning("Advertencia", "Completa todos los campos de texto.")
                 
 class VistaCompra:      # clase para la vista de compra de una camiseta
     def __init__(self):
@@ -313,7 +423,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         except Exception as e:
             showwarning("Advertencia", f"Error en la base de datos al entrar a la ventana de compra.\n{e}") 
         
-                           
+                    
     def vista_compra(self, imagen_camiseta, id_camiseta):
         producto, precio, marca, equipo, temporada, jugador, version, color, descripcion = self.obtener_informacion_camiseta(id_camiseta)
         
@@ -516,13 +626,17 @@ imagen_buscar = ImageTk.PhotoImage(imagen_buscar)
 ruta_volver = "botones/volver2.png"
 imagen_volver = Image.open(ruta_volver)
 imagen_volver = ImageTk.PhotoImage(imagen_volver)
+
+ruta_logo_proyecto = "imagenes/logo-png.png"
+imagen_proyecto = Image.open(ruta_logo_proyecto)
+imagen_proyecto = ImageTk.PhotoImage(imagen_proyecto)
  
 
 # instancias
 inicio_cliente = InicioCliente()
 cargar_camisetas = CargarCamisetas()
 vista_compra = VistaCompra()
-
+editar_cliente = EditarCliente()
 
 # botón ingresar
 ingresar = Login()
