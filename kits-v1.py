@@ -311,17 +311,17 @@ class EditarCliente:
     def obtener_datos_cliente(self, id_usuario):
         try:
             tabla = coneccion.cursor()
-            tabla.execute("SELECT nombre, apellido, num_telefono, email FROM usuarios WHERE id_usuario = ?", (id_usuario, )) 
+            tabla.execute("SELECT nombre, apellido, num_telefono, email, username FROM usuarios WHERE id_usuario = ?", (id_usuario, )) 
             datos_cliente = tabla.fetchone()
             return datos_cliente
         except sqlite3.OperationalError as e:
             showwarning("Advertencia", f"Error al acceder a los datos del cliente.\n{e}")
         
     def interfaz_editar_datos_principales(self, id_usuario):
-        nombre, apellido, telefono, email = self.obtener_datos_cliente(id_usuario) 
+        nombre, apellido, telefono, email, username = self.obtener_datos_cliente(id_usuario) 
         editar_cliente = Toplevel()
         editar_cliente.title(f"Editar cliente - {nombre} {apellido}") 
-        editar_cliente.geometry("510x300")
+        editar_cliente.geometry("510x330")
         editar_cliente.resizable(False, False)
         editar_cliente.config(bg="white")
         editar_cliente.iconbitmap(icono)
@@ -350,22 +350,31 @@ class EditarCliente:
         self.entry_email = Entry(editar_cliente, width=25, font=("Century Gothic", 12), bg="white", border=1)
         self.entry_email.place(x=10, y=250)
         
+        label_username = Label(editar_cliente, text="Nombre de usuario", bg="white", font=("Century Gothic", 12))
+        label_username.place(x=280, y=10)
+        
+        self.entry_username = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_username.place(x=280, y=40)
+        
         # insertar datos iniciales
         self.entry_nombre.insert(0, nombre)
         self.entry_apellido.insert(0, apellido)
         self.entry_telefono.insert(0, telefono)
         self.entry_email.insert(0, email) 
+        self.entry_username.insert(0, username)
         
         # botones
-        boton_confirmar_cambios = Button(editar_cliente, text="Guardar Cambios", bg="dark blue", fg="white", font=("Century Gothic", 12), width=17,
+        boton_confirmar_cambios = Button(editar_cliente, text="Guardar Cambios", bg="dark blue", fg="white", font=("Century Gothic", 12), width=18,
                                          command=lambda : self.editar_datos_principales(id_usuario, editar_cliente))
-        boton_confirmar_cambios.place(x=280, y=215)
+        boton_confirmar_cambios.place(x=280, y=80)
         
-        boton_restaurar_clave = Button(editar_cliente, text="Restaurar Contraseña", bg="gray22", fg="white", font=("Century Gothic", 12), width=17)
-        boton_restaurar_clave.place(x=280, y=255)
+        boton_restaurar_clave = Button(editar_cliente, text="Contraseña y Username", bg="gray22", fg="white", font=("Century Gothic", 12), width=18,
+                                       command=self.interfaz_cambiar_clave)
+        boton_restaurar_clave.place(x=280, y=120)
         
-        logo_proyecto = Label(editar_cliente, image=imagen_proyecto)
-        logo_proyecto.place(x=200, y=40)
+        # logo
+        logo_proyecto = Label(editar_cliente, image=imagen_proyecto, width=250, height=161)
+        logo_proyecto.place(x=250, y=160)
          
          
     def editar_datos_principales(self, id_usuario, ventana):
@@ -373,8 +382,9 @@ class EditarCliente:
         nuevo_apellido = self.entry_apellido.get()
         nuevo_telefono = self.entry_telefono.get()
         nuevo_email = self.entry_email.get()
+        nuevo_username = self.entry_username.get()
         
-        if nuevo_nombre and nuevo_apellido and nuevo_telefono and nuevo_email:
+        if nuevo_nombre and nuevo_apellido and nuevo_telefono and nuevo_email and nuevo_username:
         
             if "@" not in nuevo_email or nuevo_email.count("@") != 1 or "." not in nuevo_email.split("@")[1]:
                 showwarning("Email invalido", "Por favor escriba una dirección de correo electrónico válida.")
@@ -392,13 +402,17 @@ class EditarCliente:
                 showwarning("Apellido inválido", "El apellido no debe contener números ni caracteres especiales.")
                 return
             
+            if len(nuevo_username) < 4:
+                showwarning("Username inválido", "El username debe contener al menos cuatro caracteres.")
+                return
+            
             confirmar = askyesno("Confirmar", "¿Estás seguro de que deseas modificar tu información de usuario?")
             
             if confirmar:
                 try:
-                    actualizacion = (nuevo_nombre, nuevo_apellido, nuevo_telefono, nuevo_email, id_usuario)
+                    actualizacion = (nuevo_nombre, nuevo_apellido, nuevo_telefono, nuevo_email, nuevo_username, id_usuario)
                     tabla = coneccion.cursor()
-                    tabla.execute("UPDATE usuarios SET nombre = ?, apellido = ?, num_telefono = ?, email = ? WHERE id_usuario = ?", actualizacion)
+                    tabla.execute("UPDATE usuarios SET nombre = ?, apellido = ?, num_telefono = ?, email = ?, username = ? WHERE id_usuario = ?", actualizacion)
                     coneccion.commit()
                 except sqlite3.OperationalError as e:
                     showwarning("Advertencia", f"Error al actualizar información del usuario.\n{e}")
@@ -408,6 +422,34 @@ class EditarCliente:
                 
         else:
             showwarning("Advertencia", "Completa todos los campos de texto.")
+                
+    
+    def interfaz_cambiar_clave(self):
+        editar_clave = Toplevel()
+        editar_clave.title("Restaurar contraseña") 
+        editar_clave.geometry("510x300")
+        editar_clave.resizable(False, False)
+        editar_clave.config(bg="white")
+        editar_clave.iconbitmap(icono)
+        
+        label_username = Label(editar_cliente, text="Ingresa tu nombre de usuario actual", bg="white", font=("Century Gothic", 12))
+        label_username.place(x=10, y=10)
+        
+        self.entry_username = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_username.place(x=10, y=40)
+        
+        label_nuevo_username = Label(editar_cliente, text="Ingresa tu nuevo nombre de usuario", bg="white", font=("Century Gothic", 12))
+        label_nuevo_username.place(x=10, y=80)
+        
+        self.entry_apellido = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_apellido.place(x=10, y=110)
+        
+        label_telefono = Label(editar_cliente, text="Número de Teléfono", bg="white", font=("Century Gothic", 12))
+        label_telefono.place(x=10, y=150)
+        
+        self.entry_telefono = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_telefono.place(x=10, y=180)
+        
                 
 class VistaCompra:      # clase para la vista de compra de una camiseta
     def __init__(self):
@@ -473,7 +515,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         boton_añadir_favoritos = Button(ventana_compra, text="Añadir a favoritos", width=24, bg='salmon', fg="white", font=("Century Gothic", 16))
         boton_añadir_favoritos.place(x=10, y=510)
         
-        # talles
+        # talles 
         cantidades = [1, 2, 3, 4, 5]
             
         # XS
