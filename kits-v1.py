@@ -368,8 +368,8 @@ class EditarCliente:
                                          command=lambda : self.editar_datos_principales(id_usuario, editar_cliente))
         boton_confirmar_cambios.place(x=280, y=80)
         
-        boton_restaurar_clave = Button(editar_cliente, text="Contraseña y Username", bg="gray22", fg="white", font=("Century Gothic", 12), width=18,
-                                       command=self.interfaz_cambiar_clave)
+        boton_restaurar_clave = Button(editar_cliente, text="Restaurar Contraseña", bg="gray22", fg="white", font=("Century Gothic", 12), width=18,
+                                       command=lambda : self.interfaz_cambiar_clave(id_usuario))
         boton_restaurar_clave.place(x=280, y=120)
         
         # logo
@@ -415,8 +415,12 @@ class EditarCliente:
                     tabla.execute("UPDATE usuarios SET nombre = ?, apellido = ?, num_telefono = ?, email = ?, username = ? WHERE id_usuario = ?", actualizacion)
                     coneccion.commit()
                 except sqlite3.OperationalError as e:
-                    showwarning("Advertencia", f"Error al actualizar información del usuario.\n{e}")
-                    
+                    showwarning("Advertencia", f"Error al actualizar la información del usuario.\n{e}")
+                    return
+                except Exception as e2:
+                    showwarning("Advertencia", f"Ocurrió un error desconocido al actualizar la información del usuario.\n{e2}")
+                    return
+                
                 showinfo("Actualización correcta.", "Los datos se actualizaron correctamente.")
                 ventana.destroy()
                 
@@ -424,33 +428,65 @@ class EditarCliente:
             showwarning("Advertencia", "Completa todos los campos de texto.")
                 
     
-    def interfaz_cambiar_clave(self):
+    def interfaz_cambiar_clave(self, id_usuario):
         editar_clave = Toplevel()
         editar_clave.title("Restaurar contraseña") 
-        editar_clave.geometry("510x300")
+        editar_clave.geometry("300x150")
         editar_clave.resizable(False, False)
         editar_clave.config(bg="white")
         editar_clave.iconbitmap(icono)
         
-        label_username = Label(editar_cliente, text="Ingresa tu nombre de usuario actual", bg="white", font=("Century Gothic", 12))
-        label_username.place(x=10, y=10)
+        label_clave_original = Label(editar_clave, text="Ingresa tu contraseña actual", bg="white", font=("Century Gothic", 12))
+        label_clave_original.pack()
         
-        self.entry_username = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
-        self.entry_username.place(x=10, y=40)
+        self.entry_clave_original = Entry(editar_clave, width=20, font=("Century Gothic", 12), bg="white", border=1, show="*", justify='center')
+        self.entry_clave_original.pack()
         
-        label_nuevo_username = Label(editar_cliente, text="Ingresa tu nuevo nombre de usuario", bg="white", font=("Century Gothic", 12))
-        label_nuevo_username.place(x=10, y=80)
+        label_nueva_clave = Label(editar_clave, text="Ingresa tu nueva contraseña", bg="white", font=("Century Gothic", 12))
+        label_nueva_clave.pack()
         
-        self.entry_apellido = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
-        self.entry_apellido.place(x=10, y=110)
+        self.entry_nueva_clave = Entry(editar_clave, width=20, font=("Century Gothic", 12), bg="white", border=1, show="*", justify='center')
+        self.entry_nueva_clave.pack()
         
-        label_telefono = Label(editar_cliente, text="Número de Teléfono", bg="white", font=("Century Gothic", 12))
-        label_telefono.place(x=10, y=150)
+        boton_actualizar = Button(editar_clave, text="Actualizar", bg="gray22", fg="white", font=("Century Gothic", 12),
+                                  command=lambda : self.cambiar_clave(id_usuario, editar_clave)) 
+        boton_actualizar.pack(pady=10)
         
-        self.entry_telefono = Entry(editar_cliente, width=20, font=("Century Gothic", 12), bg="white", border=1)
-        self.entry_telefono.place(x=10, y=180)
         
-                
+    def cambiar_clave(self, id_usuario, ventana):
+        clave_actual_introducida = self.entry_clave_original.get()
+        nueva_clave = self.entry_nueva_clave.get()
+        
+        if clave_actual_introducida and nueva_clave:
+            if len(nueva_clave) >= 6:
+                try:
+                    tabla = coneccion.cursor()
+                    tabla.execute("SELECT password FROM usuarios WHERE id_usuario = ?", (id_usuario, ))
+                    clave_actual_usuario = tabla.fetchone()
+                    clave_actual = str(clave_actual_usuario[0]) # convertir a string para comprarar los mismos tipos de datos
+                    
+                    if clave_actual_introducida == clave_actual: 
+                        confirmar = askyesno("Confirmar", "¿Estás seguro que deseas cambiar tu contraseña?")
+                        if confirmar:
+                            datos_actualizar = (nueva_clave, id_usuario) 
+                            tabla.execute("UPDATE usuarios SET password = ? WHERE id_usuario = ?", datos_actualizar)
+                            coneccion.commit()
+                            showinfo("Actualización correcta", "Actualizaste tu contraseña correctamente.")
+                            ventana.destroy()
+                    else:
+                        showwarning("Contraseña actual incorrecta", "Tu contraseña actual es incorrecta.\nPor favor intenta de nuevo")       
+                        return
+                    
+                except Exception as e:
+                    showwarning("Advertencia", f"Error al cambiar contraseña.\n{e}")
+                    return
+            else:
+                showwarning("Contraseña inválida", "La contraseña debe contener al menos 6 caracteres.")       
+        else:
+            showwarning("Advertencia", "No puedes ingresar contraseñas vacías.")
+            
+                      
+                    
 class VistaCompra:      # clase para la vista de compra de una camiseta
     def __init__(self):
         self.informacion_camiseta = []
