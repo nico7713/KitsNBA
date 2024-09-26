@@ -157,7 +157,8 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
               
         # elementos del frame_acceso_rapido
         # boton modificar ubicacion cliente
-        boton_modificar_ubicacion = Button(frame_acceso_rapido, image=imagen_modificar_ubicacion, cursor="hand2", border=0)
+        boton_modificar_ubicacion = Button(frame_acceso_rapido, image=imagen_modificar_ubicacion, cursor="hand2", border=0,
+                                           command=lambda : editar_direccion_cliente.interfaz_editar_ubicacion(self.id_cliente))
         boton_modificar_ubicacion.place(x=15, y=120)
         
         boton_modificar_ubicacion.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
@@ -309,13 +310,7 @@ class CargarCamisetas:
         
         
         
-class EditarCliente:
-    def __init__(self):
-        self.nombre = ""
-        self.apellido = ""
-        self.telefono = ""
-        self.email = ""
-        
+class EditarCliente: 
     def obtener_datos_cliente(self, id_usuario):
         try:
             tabla = coneccion.cursor()
@@ -492,8 +487,100 @@ class EditarCliente:
                 showwarning("Contraseña inválida", "La contraseña debe contener al menos 6 caracteres.")       
         else:
             showwarning("Advertencia", "No puedes ingresar contraseñas vacías.")
+          
+
+class EditarDireccionCliente:
+    def direccion_actual_cliente(self, id_usuario):
+        try:
+            tabla = coneccion.cursor()
+            consulta_ubicacion = '''
+                    SELECT ubi.id_ubicacion, provincia, localidad, direccion, codigo_postal FROM ubicacion ubi
+                    INNER JOIN usuarios us
+                    ON ubi.id_ubicacion = us.id_ubicacion
+                    WHERE us.id_usuario = ?
+                                 '''
+                                 
+            tabla.execute(consulta_ubicacion, (id_usuario, )) 
+            datos_ubicacion = tabla.fetchone()
+            return datos_ubicacion
+        except Exception as e:
+            showwarning("Advertencia", f"Error al cargar la dirección actual del cliente.\n{e}")
             
+    
+    def interfaz_editar_ubicacion(self, id_usuario):
+        self.id_ubicacion, provincia, localidad, direccion, codigo_postal = self.direccion_actual_cliente(id_usuario)
+        editar_ubicacion = Toplevel()
+        editar_ubicacion.title(f"Editar ubicación - {provincia}") 
+        editar_ubicacion.geometry("480x280")
+        editar_ubicacion.resizable(False, False)
+        editar_ubicacion.config(bg="white")
+        editar_ubicacion.iconbitmap(icono)
+        
+        label_provincia = Label(editar_ubicacion, text="Provincia", bg="white", font=("Century Gothic", 12))
+        label_provincia.place(x=10, y=10)
+        
+        provincias = ["Buenos Aires", "Mendoza", "Santa Fe", "Chubut", "Cordoba", "Río Negro", "La Rioja", "Corrientes"]
+        self.entry_provincia = ttk.Combobox(editar_ubicacion, width=17, font=("Century Gothic", 12), values=provincias)
+        self.entry_provincia.place(x=10, y=40)
+        
+        label_localidad = Label(editar_ubicacion, text="Localidad", bg="white", font=("Century Gothic", 12))
+        label_localidad.place(x=10, y=80)
+        
+        self.entry_localidad = Entry(editar_ubicacion, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_localidad.place(x=10, y=110)
+        
+        label_direccion = Label(editar_ubicacion, text="Dirección", bg="white", font=("Century Gothic", 12))
+        label_direccion.place(x=10, y=150)
+        
+        self.entry_direccion = Entry(editar_ubicacion, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_direccion.place(x=10, y=180)
+        
+        label_codigo_postal = Label(editar_ubicacion, text="Código postal", bg="white", font=("Century Gothic", 12))
+        label_codigo_postal.place(x=10, y=220)
+        
+        self.entry_codigo_postal = Entry(editar_ubicacion, width=20, font=("Century Gothic", 12), bg="white", border=1)
+        self.entry_codigo_postal.place(x=10, y=250)
+        
+        # insertar datos iniciales
+        self.entry_provincia.insert(0, provincia)
+        self.entry_provincia.config(state='readonly')
+        self.entry_localidad.insert(0, localidad)
+        self.entry_direccion.insert(0, direccion)
+        self.entry_codigo_postal.insert(0, codigo_postal) 
+     
+        boton_confirmar_cambios = Button(editar_ubicacion, text="Guardar Cambios", bg="dark blue", fg="white", font=("Century Gothic", 12), width=18,
+                                         command=lambda : self.editar_ubicacion(editar_ubicacion)) 
+        boton_confirmar_cambios.place(x=250, y=210)
+        
+        # logo
+        logo_proyecto = Label(editar_ubicacion, image=imagen_proyecto, width=250, height=161)
+        logo_proyecto.place(x=220, y=20)
                       
+    def editar_ubicacion(self, ventana):
+        provincia = self.entry_provincia.get()
+        localidad = self.entry_localidad.get()
+        direccion = self.entry_direccion.get()
+        codigo_postal = self.entry_codigo_postal.get()
+        
+        if localidad and direccion and codigo_postal:
+            if not codigo_postal.isnumeric():
+                showwarning("Advertencia", "Introduce un código postal válido.")
+                return
+            confirmar = askyesno("Confirmar", "¿Estás seguro que deseas modificar tu ubicación?")
+            if confirmar:
+                try:
+                    datos_actualizar = (provincia, localidad, direccion, codigo_postal, self.id_ubicacion)
+                    tabla = coneccion.cursor()
+                    tabla.execute("UPDATE ubicacion SET provincia = ?, localidad = ?, direccion = ?, codigo_postal = ? WHERE id_ubicacion = ?", datos_actualizar)
+                    coneccion.commit()
+                    showinfo("Ubicación actualizada", "Actualizaste tu ubicación correctamente.")
+                    ventana.destroy()
+                except Exception as e:
+                    showwarning("Advertencia", f"Error al modificar la ubicación.\n{e}")
+        else:
+            showwarning("Advertencia", "No puedes ingresar localizaciones vacías.")
+            
+        
                     
 class VistaCompra:      # clase para la vista de compra de una camiseta
     def __init__(self):
@@ -723,6 +810,7 @@ inicio_cliente = InicioCliente()
 cargar_camisetas = CargarCamisetas()
 vista_compra = VistaCompra()
 editar_cliente = EditarCliente()
+editar_direccion_cliente = EditarDireccionCliente()
 
 # botón ingresar
 ingresar = Login()
