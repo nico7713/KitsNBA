@@ -103,11 +103,11 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         self.barra_busqueda.place(x=400, y=30)
         
         # boton de busqueda
-        boton_busqueda = Button(frame_busqueda, image=imagen_buscar, border=0, cursor="hand2", command=lambda : busqueda(self, False))
+        boton_busqueda = Button(frame_busqueda, image=imagen_buscar, border=0, cursor="hand2", command=lambda : busqueda(self))
         boton_busqueda.place(x=870, y=24)
         
         # volver (cargar de nuevo las camisetas)
-        boton_volver = Button(frame_busqueda, image=imagen_volver, bg="black", border=0, cursor="hand2", command=lambda : busqueda(self, True))
+        boton_volver = Button(frame_busqueda, image=imagen_volver, bg="black", border=0, cursor="hand2", command=lambda : busqueda(self, volver=True)) 
         boton_volver.place(x=15, y=15) 
         
         boton_volver.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
@@ -121,9 +121,9 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_nombre_de_usuario.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
         boton_nombre_de_usuario.bind("<Leave>", lambda e: e.widget.config(bg="black", highlightthickness=0))
         
-        def busqueda(self, volver=False):
+        def busqueda(self, volver=False, favoritos=False):
             criterio = self.barra_busqueda.get()
-            if criterio and not volver:
+            if criterio and not volver and not favoritos:
                 consulta_sql = f'''
                 SELECT imagen, nombre_producto, jugador, precio, id_producto
                 FROM productos
@@ -136,8 +136,16 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
                                 '''
             if volver:
                 consulta_sql = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()"
+                
+            if favoritos:
+                consulta_sql = f'''
+                SELECT imagen, nombre_producto, jugador, precio, p.id_producto FROM productos p
+                INNER JOIN favoritos f
+                ON p.id_producto = f.id_producto
+                WHERE f.id_usuario = {self.id_cliente}
+                               '''
             
-            if criterio or volver: 
+            if criterio or volver or favoritos: 
                 for widget in ventana_inicial.winfo_children():
                     widget.destroy()
                         
@@ -170,7 +178,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_mis_compras.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
         
         # mis favoritos
-        boton_favoritos = Button(frame_acceso_rapido, image=imagen_favoritos, cursor="hand2", border=0)
+        boton_favoritos = Button(frame_acceso_rapido, image=imagen_favoritos, cursor="hand2", border=0, command=lambda : busqueda(self, favoritos=True)) 
         boton_favoritos.place(x=15, y=395)
         
         boton_favoritos.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
