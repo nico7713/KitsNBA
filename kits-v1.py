@@ -186,7 +186,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_favoritos.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
         
         # Términos y condiciones
-        boton_terminos = Button(frame_acceso_rapido, image=imagen_acuerdo, cursor="hand2", border=0)
+        boton_terminos = Button(frame_acceso_rapido, image=imagen_acuerdo, cursor="hand2", border=0, command=lambda : terminos.interfaz_terminos(self.nombre_cliente))
         boton_terminos.place(x=15, y=485)
         
         boton_terminos.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
@@ -579,8 +579,62 @@ class EditarDireccionCliente:
                     showwarning("Advertencia", f"Error al modificar la ubicación.\n{e}")
         else:
             showwarning("Advertencia", "No puedes ingresar localizaciones vacías.")
+    
+    
             
+class TerminosCondiciones:
+    def interfaz_terminos(self, nombre_cliente):
+        terminos = Toplevel()
+        terminos.title("Términos y Condiciones")
+        terminos.geometry("1360x760")
+        terminos.resizable(False, False)
+        terminos.iconbitmap(icono)
         
+        texto_terminos = f"""Términos y Condiciones
+Hola, {nombre_cliente}
+        
+1. Introducción
+Bienvenido a KitsNBA. Al acceder y utilizar nuestra aplicación, aceptas estar sujeto a los siguientes términos y condiciones, que rigen el uso de todos los servicios ofrecidos. Por favor, lee detenidamente estos términos antes de proceder.
+
+2. Aceptación de Términos
+Al registrarte y utilizar nuestra aplicación, aceptas los términos y condiciones aquí descritos. Si no estás de acuerdo con alguna parte de estos términos, por favor, no utilices nuestros servicios.
+
+3. Registro de Usuario
+Para acceder a ciertas funciones de la aplicación, debes registrarte proporcionando información personal veraz y actualizada. Es tu responsabilidad mantener la confidencialidad de tu cuenta y contraseña, así como de todas las actividades que ocurran bajo tu cuenta.
+
+4. Uso de la Aplicación
+Prohibiciones: Está prohibido el uso indebido de nuestra aplicación, incluyendo, pero no limitado a, la transmisión de virus, malware, spam, o cualquier otra actividad ilegal o no autorizada.
+Acceso y Seguridad: Nos reservamos el derecho de restringir el acceso a la aplicación o a partes de la misma en cualquier momento y por cualquier motivo.
+
+5. Compras y Pagos
+Precios y Disponibilidad: Los precios de los productos están sujetos a cambios sin previo aviso. Nos reservamos el derecho de modificar o descontinuar cualquier producto en cualquier momento.
+Proceso de Pago: Todas las compras realizadas a través de la aplicación están sujetas a la aceptación de la forma de pago proporcionada. Aceptamos exclusivamente tarjetas de débito.
+
+6. Envíos y Devoluciones
+Tiempos de Envío: Los tiempos de envío son estimados y pueden variar según la ubicación y la disponibilidad del producto.
+Política de Devoluciones: Ofrecemos devoluciones y cambios dentro de un plazo de 30 días a partir de la recepción del pedido, siempre que el producto se encuentre en su estado original. Los costos de envío de la devolución corren por cuenta del cliente.
+
+7. Protección de Datos
+Nos comprometemos a proteger la privacidad de nuestros usuarios. Todos los datos personales recopilados serán utilizados de acuerdo con nuestra Política de Privacidad.
+
+8. Propiedad Intelectual
+Todo el contenido de la aplicación, incluyendo pero no limitado a, logotipos, imágenes, gráficos, y textos, es propiedad de KitsNBA o de nuestros proveedores y está protegido por leyes de derechos de autor y otras leyes de propiedad intelectual.
+
+9. Modificaciones a los Términos
+Nos reservamos el derecho de modificar estos términos y condiciones en cualquier momento. Las modificaciones entrarán en vigor inmediatamente después de su publicación en la aplicación. Es tu responsabilidad revisar estos términos periódicamente.
+
+10. Ley Aplicable
+Estos términos y condiciones se regirán e interpretarán de acuerdo con las leyes de la República Argentina, y cualquier disputa estará sujeta a la jurisdicción exclusiva de los tribunales de Mendoza.
+
+11. Contacto
+Si tienes alguna pregunta sobre estos términos y condiciones, por favor contáctanos a través de kitsnba@gmail.com.
+        """
+        
+        area_texto = Text(terminos, width=1360, height=760, bg='snow', font=('Calibri', 12), wrap='word') 
+        area_texto.insert("1.0", texto_terminos)
+        area_texto.config(state='disabled')
+        area_texto.pack(side='left', anchor='nw')
+    
                     
 class VistaCompra:      # clase para la vista de compra de una camiseta
     def __init__(self):
@@ -811,6 +865,7 @@ cargar_camisetas = CargarCamisetas()
 vista_compra = VistaCompra()
 editar_cliente = EditarCliente()
 editar_direccion_cliente = EditarDireccionCliente()
+terminos = TerminosCondiciones()
 
 # botón ingresar
 ingresar = Login()
