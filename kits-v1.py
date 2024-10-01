@@ -121,9 +121,9 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_nombre_de_usuario.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
         boton_nombre_de_usuario.bind("<Leave>", lambda e: e.widget.config(bg="black", highlightthickness=0))
         
-        def busqueda(self, volver=False, favoritos=False):
+        def busqueda(self, volver=False, favoritos=False, compras=False):
             criterio = self.barra_busqueda.get()
-            if criterio and not volver and not favoritos:
+            if criterio and not volver and not favoritos and not compras:
                 consulta_sql = f'''
                 SELECT imagen, nombre_producto, jugador, precio, id_producto
                 FROM productos
@@ -144,8 +144,16 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
                 ON p.id_producto = f.id_producto
                 WHERE f.id_usuario = {self.id_cliente}
                                '''
+                               
+            if compras:
+                consulta_sql = f'''
+                SELECT imagen, nombre_producto, jugador, precio, p.id_producto FROM productos p
+                JOIN ventas v
+                ON p.id_producto = v.id_producto
+                WHERE v.id_usuario = {self.id_cliente}
+                '''
             
-            if criterio or volver or favoritos: 
+            if criterio or volver or favoritos or compras: 
                 for widget in ventana_inicial.winfo_children():
                     widget.destroy()
                         
@@ -172,7 +180,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_filtrar.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
         
         # mis compras
-        boton_mis_compras = Button(frame_acceso_rapido, image=imagen_compras, cursor="hand2", border=0)
+        boton_mis_compras = Button(frame_acceso_rapido, image=imagen_compras, cursor="hand2", border=0, command=lambda : busqueda(self, compras=True))
         boton_mis_compras.place(x=15, y=305)
         
         boton_mis_compras.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
