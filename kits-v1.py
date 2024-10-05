@@ -121,9 +121,9 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_nombre_de_usuario.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
         boton_nombre_de_usuario.bind("<Leave>", lambda e: e.widget.config(bg="black", highlightthickness=0))
         
-        def busqueda(self, volver=False, favoritos=False, compras=False):
+        def busqueda(self, volver=False, favoritos=False, compras=False, filtrar=False, filtro=False):
             criterio = self.barra_busqueda.get()
-            if criterio and not volver and not favoritos and not compras:
+            if criterio and not volver and not favoritos and not compras and not filtrar and not filtro:
                 consulta_sql = f'''
                 SELECT imagen, nombre_producto, jugador, precio, id_producto
                 FROM productos
@@ -152,8 +152,40 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
                 ON p.id_producto = v.id_producto
                 WHERE v.id_usuario = {self.id_cliente}
                 '''
+                
+            if filtrar:
+                self.ventana_filtrar = Toplevel()
+                self.ventana_filtrar.title("Filtrar por")
+                self.ventana_filtrar.geometry("300x170")
+                self.ventana_filtrar.resizable(False, False)
+                self.ventana_filtrar.iconbitmap(icono)
+                
+                campos = ["Precio", "Marca", "Version", "Color", "Equipo"]
+                self.entry_campo = ttk.Combobox(self.ventana_filtrar, values=campos, font=('Century Gothic', 12))
+                self.entry_campo.insert(0, campos[0])
+                self.entry_campo.config(state='readonly')
+                self.entry_campo.pack(pady=10)
+                
+                orden = ["Ascendente", "Descendente"]
+                self.entry_orden = ttk.Combobox(self.ventana_filtrar, values=orden, font=('Century Gothic', 12))
+                self.entry_orden.insert(0, orden[0])
+                self.entry_orden.config(state='readonly')
+                self.entry_orden.pack(pady=10)
             
-            if criterio or volver or favoritos or compras: 
+                boton_ir = Button(self.ventana_filtrar, text="Filtrar", bg='gray22', fg='white', font=('Century Gothic', 12), width=15, command=lambda : busqueda(self, filtro=True))
+                boton_ir.pack(pady=10)
+            
+            if filtro:
+                campo = self.entry_campo.get().lower()
+                if self.entry_orden.get() == "Ascendente":
+                    orden = "ASC"
+                if self.entry_orden.get() == "Descendente":
+                    orden = "DESC"
+                    
+                self.ventana_filtrar.destroy()
+                consulta_sql = f"SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY {campo} {orden}" 
+            
+            if criterio or volver or favoritos or compras or filtro: 
                 for widget in ventana_inicial.winfo_children():
                     widget.destroy()
                         
@@ -173,7 +205,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_modificar_ubicacion.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
         
         # boton filtrar por
-        boton_filtrar = Button(frame_acceso_rapido, image=imagen_filtrar, cursor="hand2", border=0)
+        boton_filtrar = Button(frame_acceso_rapido, image=imagen_filtrar, cursor="hand2", border=0, command=lambda : busqueda(self, filtrar=True))
         boton_filtrar.place(x=15, y=215)
         
         boton_filtrar.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
