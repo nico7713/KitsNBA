@@ -65,8 +65,8 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         self.nombre_cliente = ""
         self.apellido_cliente = ""
         
-    # Método para mostrar la ventana, recibe el id y el nombre de usuario del cliente, más una consulta sql usada para buscar
-    def inicio_cliente(self, id_cliente, username_cliente, consulta_sql = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()"):     
+    # Método para mostrar la ventana, recibe el id y el nombre de usuario del cliente
+    def inicio_cliente(self, id_cliente, username_cliente):     
         self.id_cliente = id_cliente
         self.username_cliente = username_cliente
         
@@ -82,11 +82,13 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         inicio.iconbitmap(icono)
         
         # llamar a métodos para la interfaz - estos métodos añaden los widgets necesarios a la ventana 'inicio'
-        ventana_inicio = self.ventana_y_frames(inicio)
-        frame_camisetas = self.configurar_scrollbar(ventana_inicio)
-        self.colocar_camisetas(frame_camisetas, consulta_sql)
+        self.limpiar_cargar_widgets(inicio, "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()") # Consulta de inicio
         
     def ventana_y_frames(self, ventana_inicial): 
+        # limpiar widgets antes de cargarlos todos de nuevo, ya que este método funciona en conjunto con configurar_scrollbar y colocar_camisetas
+        for widget in ventana_inicial.winfo_children():     
+            widget.destroy()                              
+            
         # ---- FRAMES ---- (colocados en la ventana toplevel 'inicio')
         # busqueda
         frame_busqueda = Frame(ventana_inicial, bg="black", border=1, width=1360, height=80)
@@ -97,17 +99,17 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         frame_acceso_rapido.pack(side=LEFT)                                                                # y posicionarlo antes de los demás widgets
         
         # ELEMENTOS de frames
-        # elementos del frame_busqueda
+        # -----elementos del frame_busqueda-----
         # barra de busqueda
         self.barra_busqueda = Entry(frame_busqueda, width=50, font=fuente_cliente, justify='center')
         self.barra_busqueda.place(x=400, y=30)
         
         # boton de busqueda
-        boton_busqueda = Button(frame_busqueda, image=imagen_buscar, border=0, cursor="hand2", command=lambda : busqueda(self))
+        boton_busqueda = Button(frame_busqueda, image=imagen_buscar, border=0, cursor="hand2", command=lambda : self.busqueda(ventana_inicial))
         boton_busqueda.place(x=870, y=24)
         
         # volver (cargar de nuevo las camisetas)
-        boton_volver = Button(frame_busqueda, image=imagen_volver, bg="black", border=0, cursor="hand2", command=lambda : busqueda(self, volver=True)) 
+        boton_volver = Button(frame_busqueda, image=imagen_volver, bg="black", border=0, cursor="hand2", command=lambda : self.recargar_camisetas(ventana_inicial)) 
         boton_volver.place(x=15, y=15) 
         
         boton_volver.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
@@ -120,82 +122,8 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         
         boton_nombre_de_usuario.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
         boton_nombre_de_usuario.bind("<Leave>", lambda e: e.widget.config(bg="black", highlightthickness=0))
-        
-        def busqueda(self, volver=False, favoritos=False, compras=False, filtrar=False, filtro=False):
-            criterio = self.barra_busqueda.get()
-            if criterio and not volver and not favoritos and not compras and not filtrar and not filtro:
-                consulta_sql = f'''
-                SELECT imagen, nombre_producto, jugador, precio, id_producto
-                FROM productos
-                WHERE marca LIKE "%{criterio}%"
-                OR jugador LIKE "%{criterio}%"
-                OR equipo LIKE "%{criterio}%"
-                OR version LIKE "%{criterio}%"
-                OR nombre_producto LIKE "%{criterio}%"
-                ORDER BY RANDOM() 
-                                '''
-            if volver:
-                consulta_sql = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()"
-                
-            if favoritos:
-                consulta_sql = f'''
-                SELECT imagen, nombre_producto, jugador, precio, p.id_producto FROM productos p
-                INNER JOIN favoritos f
-                ON p.id_producto = f.id_producto
-                WHERE f.id_usuario = {self.id_cliente}
-                               '''
-                               
-            if compras:
-                consulta_sql = f'''
-                SELECT imagen, nombre_producto, jugador, precio, p.id_producto FROM productos p
-                JOIN ventas v
-                ON p.id_producto = v.id_producto
-                WHERE v.id_usuario = {self.id_cliente}
-                '''
-                
-            if filtrar:
-                self.ventana_filtrar = Toplevel()
-                self.ventana_filtrar.title("Filtrar por")
-                self.ventana_filtrar.geometry("300x170")
-                self.ventana_filtrar.resizable(False, False)
-                self.ventana_filtrar.iconbitmap(icono)
-                
-                campos = ["Precio", "Marca", "Version", "Color", "Equipo"]
-                self.entry_campo = ttk.Combobox(self.ventana_filtrar, values=campos, font=('Century Gothic', 12))
-                self.entry_campo.insert(0, campos[0])
-                self.entry_campo.config(state='readonly')
-                self.entry_campo.pack(pady=10)
-                
-                orden = ["Ascendente", "Descendente"]
-                self.entry_orden = ttk.Combobox(self.ventana_filtrar, values=orden, font=('Century Gothic', 12))
-                self.entry_orden.insert(0, orden[0])
-                self.entry_orden.config(state='readonly')
-                self.entry_orden.pack(pady=10)
-            
-                boton_ir = Button(self.ventana_filtrar, text="Filtrar", bg='gray22', fg='white', font=('Century Gothic', 12), width=15, command=lambda : busqueda(self, filtro=True))
-                boton_ir.pack(pady=10)
-            
-            if filtro:
-                campo = self.entry_campo.get().lower()
-                if self.entry_orden.get() == "Ascendente":
-                    orden = "ASC"
-                if self.entry_orden.get() == "Descendente":
-                    orden = "DESC"
-                    
-                self.ventana_filtrar.destroy()
-                consulta_sql = f"SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY {campo} {orden}" 
-            
-            if criterio or volver or favoritos or compras or filtro: 
-                for widget in ventana_inicial.winfo_children():
-                    widget.destroy()
-                        
-                ventana_inicio = self.ventana_y_frames(ventana_inicial)
-                self.barra_busqueda.insert(0, criterio)
-                frame_camisetas = self.configurar_scrollbar(ventana_inicio)
-                self.colocar_camisetas(frame_camisetas, consulta_sql)
-            
-              
-        # elementos del frame_acceso_rapido
+                  
+        # -----elementos del frame_acceso_rapido-----
         # boton modificar ubicacion cliente
         boton_modificar_ubicacion = Button(frame_acceso_rapido, image=imagen_modificar_ubicacion, cursor="hand2", border=0,
                                            command=lambda : editar_direccion_cliente.interfaz_editar_ubicacion(self.id_cliente))
@@ -205,21 +133,21 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         boton_modificar_ubicacion.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
         
         # boton filtrar por
-        boton_filtrar = Button(frame_acceso_rapido, image=imagen_filtrar, cursor="hand2", border=0, command=lambda : busqueda(self, filtrar=True))
+        boton_filtrar = Button(frame_acceso_rapido, image=imagen_filtrar, cursor="hand2", border=0, command=lambda : self.ventana_filtro(ventana_inicial))
         boton_filtrar.place(x=15, y=215)
         
         boton_filtrar.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
         boton_filtrar.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
         
         # mis compras
-        boton_mis_compras = Button(frame_acceso_rapido, image=imagen_compras, cursor="hand2", border=0, command=lambda : busqueda(self, compras=True))
+        boton_mis_compras = Button(frame_acceso_rapido, image=imagen_compras, cursor="hand2", border=0, command=lambda : self.ver_compras(ventana_inicial))
         boton_mis_compras.place(x=15, y=305)
         
         boton_mis_compras.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
         boton_mis_compras.bind("<Leave>", lambda e: e.widget.config(bg="snow", highlightthickness=0))
         
         # mis favoritos
-        boton_favoritos = Button(frame_acceso_rapido, image=imagen_favoritos, cursor="hand2", border=0, command=lambda : busqueda(self, favoritos=True)) 
+        boton_favoritos = Button(frame_acceso_rapido, image=imagen_favoritos, cursor="hand2", border=0, command=lambda : self.ver_favoritos(ventana_inicial)) 
         boton_favoritos.place(x=15, y=395)
         
         boton_favoritos.bind("<Enter>", lambda e: e.widget.config(bg="lightblue", highlightthickness=2, highlightbackground="blue"))
@@ -272,10 +200,10 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         
         
         # --- colocar camisetas ----
-    def colocar_camisetas(self, frame_camisetas, consulta_sql):
+    def colocar_camisetas(self, frame_camisetas, consulta_sql, parametro_sql=()):
         try:
             # lista camisetas
-            camisetas = cargar_camisetas.cargar_camisetas(consulta_sql) 
+            camisetas = cargar_camisetas.cargar_camisetas(consulta_sql, parametro_sql) 
             
             if camisetas:
             
@@ -314,18 +242,105 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
             return datos
         except sqlite3.OperationalError as e:
             showwarning("Advertencia", f"No pudimos obtener el nombre y apellido del usuario.\n{e}")
+            
+            
+    def limpiar_cargar_widgets(self, ventana, consulta_sql, parametro_sql=()):  # método para recargar la ventana con nuevas camisetas dependiendo de la búsqueda
+        ventana = self.ventana_y_frames(ventana) 
+        frame_camisetas = self.configurar_scrollbar(ventana)
+        if not parametro_sql:
+            self.colocar_camisetas(frame_camisetas, consulta_sql)
+        else:
+            self.colocar_camisetas(frame_camisetas, consulta_sql, parametro_sql)      
+    
+    def busqueda(self, ventana):    # método para buscar con la bara de búsqueda
+        criterio = self.barra_busqueda.get()
+        if criterio:
+            consulta_sql = '''SELECT imagen, nombre_producto, jugador, precio, id_producto
+                              FROM productos
+                              WHERE nombre_producto LIKE ?
+                              OR marca LIKE ?
+                              OR equipo LIKE ?
+                              OR jugador LIKE ?
+                              OR version LIKE ?
+                              ORDER BY RANDOM()
+                              '''
+            self.limpiar_cargar_widgets(ventana, consulta_sql, parametro_sql=(f"%{criterio}%", f"%{criterio}%", f"%{criterio}%", f"%{criterio}%", f"%{criterio}%"))
+            self.barra_busqueda.insert(0, criterio)
+                          
+
+    def recargar_camisetas(self, ventana):  # recargar ventana con nuevas camisetas
+        consulta_sql = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY RANDOM()"
+        self.limpiar_cargar_widgets(ventana, consulta_sql) 
+            
+    def ver_favoritos(self, ventana):   # ver los productos favoritos del usuario
+        consulta_sql = f'''
+                SELECT imagen, nombre_producto, jugador, precio, p.id_producto FROM productos p
+                INNER JOIN favoritos f
+                ON p.id_producto = f.id_producto
+                WHERE f.id_usuario = ?
+                        '''
+        self.limpiar_cargar_widgets(ventana, consulta_sql, (self.id_cliente, ))
+        
+    def ver_compras(self, ventana): # ver compras del usuario
+        consulta_sql = f'''
+                SELECT imagen, nombre_producto, jugador, precio, p.id_producto FROM productos p
+                JOIN ventas v
+                ON p.id_producto = v.id_producto
+                WHERE v.id_usuario = ?
+                       '''
+        self.limpiar_cargar_widgets(ventana, consulta_sql, (self.id_cliente, ))
+        
+    def ventana_filtro(self, ventana):  # ventana para filtrar camisetas por precio, marca, versión, color y equipo
+        ventana_filtrar = Toplevel(ventana)
+        ventana_filtrar.title("Filtrar por")
+        ventana_filtrar.geometry("300x170")
+        ventana_filtrar.resizable(False, False)
+        ventana_filtrar.iconbitmap(icono)
+                
+        campos = ["Precio", "Marca", "Version", "Color", "Equipo"]
+        self.entry_campo = ttk.Combobox(ventana_filtrar, values=campos, font=('Century Gothic', 12))
+        self.entry_campo.insert(0, campos[0])
+        self.entry_campo.config(state='readonly')
+        self.entry_campo.pack(pady=10)
+                
+        orden = ["Ascendente", "Descendente"]
+        self.entry_orden = ttk.Combobox(ventana_filtrar, values=orden, font=('Century Gothic', 12))
+        self.entry_orden.insert(0, orden[0])
+        self.entry_orden.config(state='readonly')
+        self.entry_orden.pack(pady=10)
+        
+        boton_ir = Button(ventana_filtrar, text="Filtrar", bg='gray22', fg='white', font=('Century Gothic', 12), width=15, command=lambda : self.filtrar(ventana, ventana_filtrar))
+        boton_ir.pack(pady=10)
+        
+    def filtrar(self, ventana_camisetas, ventana_filtrar): # lógica para filtrar
+        campo = self.entry_campo.get().lower()
+        if self.entry_orden.get() == "Ascendente":
+            orden = "ASC"
+        elif self.entry_orden.get() == "Descendente":
+            orden = "DESC"
+        else:
+            showwarning("Error al filtrar.", "Orden incorrecto.")
+            return 
+                           
+        ventana_filtrar.destroy()
+        consulta_sql = f"SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos ORDER BY {campo} {orden}" 
+        self.limpiar_cargar_widgets(ventana_camisetas, consulta_sql)
+                              
         
     
 # clase para cargar las imagenes de las camisetas y una descripción (nombre de la camiseta, jugador y precio). 
-# Esta clase esta diseñada para que la consulta SQL seleccione 4 campos (imagen, nombre_producto, jugador, precio)
+# Esta clase esta diseñada para que la consulta SQL seleccione 5 campos (imagen, nombre_producto, jugador, precio y id_camiseta)
 class CargarCamisetas:  
     def __init__(self):
         self.imagenes_cargadas = []     # Lista para mantener la referencia a las imagenes
         
-    def cargar_camisetas(self, consulta_sql, modificar_tamaño=False, tamaño_imagenes=(400, 300)):    # Al poner parametros ya definidos, no hay un error si no los pasamos
+    def cargar_camisetas(self, consulta_sql, parametro_sql=(), modificar_tamaño=False, tamaño_imagenes=(400, 300)): # Al poner parametros ya definidos, no hay un error si no los pasamos
         try:
             tabla = coneccion.cursor()
-            tabla.execute(consulta_sql) 
+            if not parametro_sql:
+                tabla.execute(consulta_sql)
+            else:
+                tabla.execute(consulta_sql, parametro_sql) 
             info_camisetas = tabla.fetchall()
             camisetas = []
             
@@ -603,7 +618,7 @@ class EditarDireccionCliente:
         codigo_postal = self.entry_codigo_postal.get()
         
         if localidad and direccion and codigo_postal:
-            if not codigo_postal.isnumeric():
+            if not codigo_postal.isnumeric() or len(codigo_postal) < 4:
                 showwarning("Advertencia", "Introduce un código postal válido.")
                 return
             confirmar = askyesno("Confirmar", "¿Estás seguro que deseas modificar tu ubicación?")
