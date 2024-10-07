@@ -475,9 +475,11 @@ class EditarCliente:
                 except sqlite3.OperationalError as e:
                     showwarning("Advertencia", f"Error al actualizar la información del usuario.\n{e}")
                     return
-                except Exception as e2:
-                    showwarning("Advertencia", f"Ocurrió un error desconocido al actualizar la información del usuario.\n{e2}")
+                except sqlite3.IntegrityError:  # validar que el nombre de usuario no exista ya en la base de datos
+                    showwarning("Advertencia", f"El nombre de usuario '{nuevo_username}' ya existe.\nPor favor elije otro.")
                     return
+                except Exception as e2:
+                    showwarning("Advertencia", f"Ocurrió un error desconocido al modificar la información de usuario.\n{e2}") 
                 
                 showinfo("Actualización correcta.", "Los datos se actualizaron correctamente.")
                 ventana.destroy()
