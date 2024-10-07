@@ -699,9 +699,10 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         
     def obtener_informacion_camiseta(self, id_camiseta):
         try:
-            consulta_sql = f"SELECT nombre_producto, precio, marca, equipo, temporada, jugador, version, color, descripcion FROM productos WHERE id_producto = {id_camiseta}"
+            consulta_sql = "SELECT nombre_producto, precio, marca, equipo, temporada, jugador, version, color, descripcion FROM productos WHERE id_producto = ?"
+            parametro_sql = (id_camiseta, )
             tabla = coneccion.cursor()
-            tabla.execute(consulta_sql) 
+            tabla.execute(consulta_sql, parametro_sql) 
             info_camiseta = tabla.fetchone()
             return info_camiseta
         except Exception as e:
@@ -766,7 +767,6 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         
         combo_xs = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_xs.place(x=10, y=590)
-        
         # S
         label_s = Label(ventana_compra, text="S", bg='white', font=("Calibri", 14))
         label_s.place(x=60, y=560)
@@ -800,9 +800,10 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         
         
         try:
-            consulta = f"SELECT stock_talle FROM stock WHERE id_producto = {id_camiseta}"
+            consulta = "SELECT stock_talle FROM stock WHERE id_producto = ?"
+            parametro = (id_camiseta, )
             tabla = coneccion.cursor()
-            tabla.execute(consulta)
+            tabla.execute(consulta, parametro)
             talles = tabla.fetchall()
             
             xs, s, m, l, xl, xxl = talles
@@ -833,8 +834,10 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             # productos relacionados
             label_productos_relacionados = Label(ventana_compra, text="Ver más productos", bg='white', font=("Calibri", 12))
             label_productos_relacionados.place(x=900, y=10)  # seleccionar productos relacionados por marca y version
-            consulta_productos_relacionados = f"SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE marca = '{marca}' and version = '{version}' and id_producto != '{id_camiseta}' ORDER BY RANDOM() LIMIT 4"
-            camisetas = cargar_camisetas.cargar_camisetas(consulta_sql=consulta_productos_relacionados, modificar_tamaño=True, tamaño_imagenes=(280, 350)) 
+            consulta_productos_relacionados = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE marca = ? and version = ? and id_producto != ? ORDER BY RANDOM() LIMIT 4"
+            parametros_productos_relacionados = (marca, version, id_camiseta)
+            camisetas = cargar_camisetas.cargar_camisetas(consulta_sql=consulta_productos_relacionados, parametro_sql=parametros_productos_relacionados,
+                                                          modificar_tamaño=True, tamaño_imagenes=(280, 350))  
             
             x = 720
             y = 60
