@@ -164,7 +164,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         # ---- FIN de los frames ---- Al colocar los frames en la ventana original toplevel antes de declarar el scrollbar, estos van a estar fijos y no van a ser deslizados
         
         
-    def configurar_scrollbar(self, ventana_principal):
+    def configurar_scrollbar(self, ventana_principal, mousewheel=True):
         # ---- scrollbar ---- (esta barra va a deslizar por las camisetas) 
         # frame para el canvas
         frame_principal = Frame(ventana_principal)
@@ -188,12 +188,13 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         # añadir nuevo frame al canvas
         canva.create_window((0,0), window=frame_widgets, anchor="nw")
         
-         # ----- Evento para usar la rueda del mouse -----
-        def on_mouse_wheel(event):
-            canva.yview_scroll(-1 * int((event.delta / 120)), "units")
-            
-        # Vincular la rueda del mouse al canvas
-        canva.bind_all("<MouseWheel>", on_mouse_wheel)
+        if mousewheel:
+            # ----- Evento para usar la rueda del mouse -----
+            def on_mouse_wheel(event):
+                canva.yview_scroll(-1 * int((event.delta / 120)), "units")
+                
+            # Vincular la rueda del mouse al canvas
+            canva.bind_all("<MouseWheel>", on_mouse_wheel)
         
         return frame_widgets    # retornamos un frame con un scrollbar listo para que las camisetas se coloquen acá y sean deslizadas 
         # ---- FIN scrollbar ---- ahora la barra de deslizamiento esta configurada para deslizar por sobre las camisetas
@@ -719,86 +720,91 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         ventana_compra.config(bg='white')
         ventana_compra.iconbitmap(icono)
         
-        muestra_camiseta = Label(ventana_compra, image=imagen_camiseta)
+        
+        frame_descripcion = Frame(ventana_compra, bg='white', width=700, height=768, border=0)
+        frame_descripcion.pack(side=LEFT)
+    
+        
+        muestra_camiseta = Label(frame_descripcion, image=imagen_camiseta)
         muestra_camiseta.place(x=10, y=10)
         
-        label_producto = Label(ventana_compra, text=f"Producto: {producto}", bg='white', font=("Calibri", 12))
+        label_producto = Label(frame_descripcion, text=f"Producto: {producto}", bg='white', font=("Calibri", 12))
         label_producto.place(x=350, y=10)
         
-        label_marca = Label(ventana_compra, text=f"Marca: {marca}", bg='white', font=("Calibri", 12))
+        label_marca = Label(frame_descripcion, text=f"Marca: {marca}", bg='white', font=("Calibri", 12))
         label_marca.place(x=350, y=40)
         
-        label_equipo = Label(ventana_compra, text=f"Franquicia: {equipo}", bg='white', font=("Calibri", 12))
+        label_equipo = Label(frame_descripcion, text=f"Franquicia: {equipo}", bg='white', font=("Calibri", 12))
         label_equipo.place(x=350, y=70)
         
-        label_jugador = Label(ventana_compra, text=f"Jugador: {jugador}", bg='white', font=("Calibri", 12))
+        label_jugador = Label(frame_descripcion, text=f"Jugador: {jugador}", bg='white', font=("Calibri", 12))
         label_jugador.place(x=350, y=100)
         
-        label_temporada = Label(ventana_compra, text=f"Temporada: {temporada}", bg='white', font=("Calibri", 12))
+        label_temporada = Label(frame_descripcion, text=f"Temporada: {temporada}", bg='white', font=("Calibri", 12))
         label_temporada.place(x=350, y=130)
         
-        label_version = Label(ventana_compra, text=f"Version: {version}", bg='white', font=("Calibri", 12))
+        label_version = Label(frame_descripcion, text=f"Version: {version}", bg='white', font=("Calibri", 12))
         label_version.place(x=350, y=160)
         
-        label_color = Label(ventana_compra, text=f"Color: {color}", bg='white', font=("Calibri", 12))
+        label_color = Label(frame_descripcion, text=f"Color: {color}", bg='white', font=("Calibri", 12))
         label_color.place(x=350, y=190)
          
-        area_descripcion = Text(ventana_compra, bg='white', font=("Calibri", 12), width=40, height=10, border=0, wrap='word')
+        area_descripcion = Text(frame_descripcion, bg='white', font=("Calibri", 12), width=40, height=10, border=0, wrap='word')
         area_descripcion.place(x=350, y=220)    
         area_descripcion.insert("1.0", f"Descripción: {descripcion}")
         area_descripcion.config(state='disabled')
         
-        label_precio = Label(ventana_compra, text=f"Precio: {precio}", bg='white', font=("Calibri", 16))
+        label_precio = Label(frame_descripcion, text=f"Precio: {precio}", bg='white', font=("Calibri", 16))
         label_precio.place(x=350, y=460)
         
         # botones de compra y añadir a favoritos
-        boton_compra = Button(ventana_compra, text="Comprar ahora", width=24, bg="Green", fg="white", font=("Century Gothic", 16))
+        boton_compra = Button(frame_descripcion, text="Comprar ahora", width=24, bg="Green", fg="white", font=("Century Gothic", 16))
         boton_compra.place(x=10, y=460)
         
-        boton_añadir_favoritos = Button(ventana_compra, text="Añadir a favoritos", width=24, bg='salmon', fg="white", font=("Century Gothic", 16))
+        boton_añadir_favoritos = Button(frame_descripcion, text="Añadir a favoritos", width=24, bg='salmon', fg="white", font=("Century Gothic", 16))
         boton_añadir_favoritos.place(x=10, y=510)
         
         # talles 
         cantidades = [1, 2, 3, 4, 5]
             
         # XS
-        label_xs = Label(ventana_compra, text="XS", bg='white', font=("Calibri", 14))
+        label_xs = Label(frame_descripcion, text="XS", bg='white', font=("Calibri", 14))
         label_xs.place(x=10, y=560)
         
-        combo_xs = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        combo_xs = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_xs.place(x=10, y=590)
         # S
-        label_s = Label(ventana_compra, text="S", bg='white', font=("Calibri", 14))
+        label_s = Label(frame_descripcion, text="S", bg='white', font=("Calibri", 14))
         label_s.place(x=60, y=560)
         
-        combo_s = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        combo_s = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_s.place(x=60, y=590)
         # M
-        label_m = Label(ventana_compra, text="M", bg='white', font=("Calibri", 14))
+        label_m = Label(frame_descripcion, text="M", bg='white', font=("Calibri", 14))
         label_m.place(x=110, y=560)
         
-        combo_m = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        combo_m = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_m.place(x=110, y=590)
         # L
-        label_l = Label(ventana_compra, text="L", bg='white', font=("Calibri", 14))
+        label_l = Label(frame_descripcion, text="L", bg='white', font=("Calibri", 14))
         label_l.place(x=160, y=560)
         
-        combo_l = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        combo_l = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_l.place(x=160, y=590)
         # XL
-        label_xl = Label(ventana_compra, text="XL", bg='white', font=("Calibri", 14))
+        label_xl = Label(frame_descripcion, text="XL", bg='white', font=("Calibri", 14))
         label_xl.place(x=210, y=560)
         
-        combo_xl = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        combo_xl = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_xl.place(x=210, y=590)
         # XXL
-        label_xxl = Label(ventana_compra, text="XXL", bg='white', font=("Calibri", 14))
+        label_xxl = Label(frame_descripcion, text="XXL", bg='white', font=("Calibri", 14))
         label_xxl.place(x=260, y=560)
         
-        combo_xxl = ttk.Combobox(ventana_compra, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        combo_xxl = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
         combo_xxl.place(x=260, y=590)
         
-        
+        # mostrar si hay stock disponible en los talles
         try:
             consulta = "SELECT stock_talle FROM stock WHERE id_producto = ?"
             parametro = (id_camiseta, )
@@ -830,34 +836,41 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar la información de talles\n{e}")      
             
+        # logo aplicación
+        logo = Label(frame_descripcion, image=imagen_proyecto)
+        logo.place(x=350, y=455)
+            
         try:
             # productos relacionados
-            label_productos_relacionados = Label(ventana_compra, text="Ver más productos", bg='white', font=("Calibri", 12))
-            label_productos_relacionados.place(x=900, y=10)  # seleccionar productos relacionados por marca y version
-            consulta_productos_relacionados = "SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE marca = ? and version = ? and id_producto != ? ORDER BY RANDOM() LIMIT 4"
+            # seleccionar productos relacionados por marca y version
+            consulta_productos_relacionados = """
+            SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE marca = ? and version = ? and id_producto != ? ORDER BY RANDOM() LIMIT 6"""
             parametros_productos_relacionados = (marca, version, id_camiseta)
             camisetas = cargar_camisetas.cargar_camisetas(consulta_sql=consulta_productos_relacionados, parametro_sql=parametros_productos_relacionados,
                                                           modificar_tamaño=True, tamaño_imagenes=(280, 350))  
             
-            x = 720
-            y = 60
-            cuadricula = 1
+            frame_camisetas = inicio_cliente.configurar_scrollbar(ventana_compra, mousewheel=False)
+            frame_camisetas.config(border=0, bg='white')
+            label_productos_relacionados = Label(frame_camisetas, text="Ver productos relacionados", bg='white', font=("Calibri", 12))
+            label_productos_relacionados.grid(row=0, column=0, columnspan=2)
+            
+            fila = 1
+            columna = 0
             
             for imagen, descripcion, id in camisetas:
-                camiseta_recomendada = Button(ventana_compra, image=imagen, bg='white', border=0)
-                camiseta_recomendada.place(x=x, y=y)
+                camiseta_recomendada = Button(frame_camisetas, image=imagen, bg='white', border=0, cursor='hand2')
+                camiseta_recomendada.grid(row=fila, column=columna, padx=20, pady=10)
                 
-                descripcion_camiseta = Label(ventana_compra, text=descripcion, bg='white', font=("Calibri", 12))
-                descripcion_camiseta.place(x=x, y=y + 410)
+                descripcion_camiseta = Label(frame_camisetas, text=descripcion, bg='white', font=("Calibri", 11))
+                descripcion_camiseta.grid(row=fila + 1, column=columna)
                 
-                if cuadricula == 1:
-                    cuadricula += 1
-                    x += 350
+                if columna == 0:
+                    columna += 1
                     
-                elif cuadricula >= 2:
-                    cuadricula = 1
-                    x = 720
-                    y += 480
+                elif columna == 1:
+                    fila += 2
+                    columna = 0
+    
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar camisetas relacionadas.\n{e}") 
                 
