@@ -858,7 +858,8 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             columna = 0
             
             for imagen, descripcion, id in camisetas:
-                camiseta_recomendada = Button(frame_camisetas, image=imagen, bg='white', border=0, cursor='hand2')
+                camiseta_recomendada = Button(frame_camisetas, image=imagen, bg='white', border=0, cursor='hand2',
+                                              command=lambda imagen_relacionada=imagen, id_relacionado=id : self.vista_compra(imagen_relacionada, id_relacionado))
                 camiseta_recomendada.grid(row=fila, column=columna, padx=20, pady=10)
                 
                 descripcion_camiseta = Label(frame_camisetas, text=descripcion, bg='white', font=("Calibri", 11))
