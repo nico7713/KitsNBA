@@ -710,18 +710,22 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             showwarning("Advertencia", f"Error en la base de datos al entrar a la ventana de compra.\n{e}") 
         
                     
-    def vista_compra(self, imagen_camiseta, id_camiseta):
+    def vista_compra(self, imagen_camiseta, id_camiseta, recargar_ventana=False):
         producto, precio, marca, equipo, temporada, jugador, version, color, descripcion = self.obtener_informacion_camiseta(id_camiseta)
         
-        ventana_compra = Toplevel()
-        ventana_compra.title(f"Comprar {producto} {jugador} {color}")
-        ventana_compra.geometry("1366x768")
-        ventana_compra.resizable(False, False)
-        ventana_compra.config(bg='white')
-        ventana_compra.iconbitmap(icono)
+        if recargar_ventana:
+            for widget in self.ventana_compra.winfo_children():
+                widget.destroy()
+        else:
+            self.ventana_compra = Toplevel()
+            self.ventana_compra.title(f"Comprar {producto} {jugador} {color}")
+            self.ventana_compra.geometry("1366x768")
+            self.ventana_compra.resizable(False, False)
+            self.ventana_compra.config(bg='white')
+            self.ventana_compra.iconbitmap(icono)
         
         
-        frame_descripcion = Frame(ventana_compra, bg='white', width=700, height=768, border=0)
+        frame_descripcion = Frame(self.ventana_compra, bg='white', width=700, height=768, border=0)
         frame_descripcion.pack(side=LEFT)
     
         
@@ -849,7 +853,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             camisetas = cargar_camisetas.cargar_camisetas(consulta_sql=consulta_productos_relacionados, parametro_sql=parametros_productos_relacionados,
                                                           modificar_tamaño=True, tamaño_imagenes=(280, 350))  
             
-            frame_camisetas = inicio_cliente.configurar_scrollbar(ventana_compra, mousewheel=False)
+            frame_camisetas = inicio_cliente.configurar_scrollbar(self.ventana_compra, mousewheel=False)
             frame_camisetas.config(border=0, bg='white')
             label_productos_relacionados = Label(frame_camisetas, text="Ver productos relacionados", bg='white', font=("Calibri", 12))
             label_productos_relacionados.grid(row=0, column=0, columnspan=2)
@@ -859,7 +863,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             
             for imagen, descripcion, id in camisetas:
                 camiseta_recomendada = Button(frame_camisetas, image=imagen, bg='white', border=0, cursor='hand2',
-                                              command=lambda imagen_relacionada=imagen, id_relacionado=id : self.vista_compra(imagen_relacionada, id_relacionado))
+                                              command=lambda imagen_relacionada=imagen, id_relacionado=id : self.vista_compra(imagen_relacionada, id_relacionado, recargar_ventana=True))
                 camiseta_recomendada.grid(row=fila, column=columna, padx=20, pady=10)
                 
                 descripcion_camiseta = Label(frame_camisetas, text=descripcion, bg='white', font=("Calibri", 11))
