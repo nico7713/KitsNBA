@@ -213,7 +213,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
                 
                 for imagen_camiseta, descripcion_camiseta, id_camiseta in camisetas: # se declara la variable que contenga la imagen en la función lambda para mantener la referencia
                     camiseta = Button(frame_camisetas, image=imagen_camiseta, border=0, width=300, height=400, bg='white', cursor="hand2",
-                                    command=lambda imagen=imagen_camiseta, id=id_camiseta : vista_compra.vista_compra(imagen, id))
+                                    command=lambda imagen=imagen_camiseta, id=id_camiseta, id_cliente=self.id_cliente : vista_compra.vista_compra(imagen, id, id_cliente))
                     camiseta.grid(row=fila, column=columna, padx=60, pady=10)
                     
                     descripcion = Label(frame_camisetas, text=descripcion_camiseta, bg='white', font=("Calibri", 12))
@@ -698,7 +698,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
     def __init__(self):
         self.informacion_camiseta = []
         
-    def obtener_informacion_camiseta(self, id_camiseta):
+    def obtener_informacion_camiseta(self, id_camiseta):    # obtener todos los datos de la camiseta pasando como parametro el id
         try:
             consulta_sql = "SELECT nombre_producto, precio, marca, equipo, temporada, jugador, version, color, descripcion FROM productos WHERE id_producto = ?"
             parametro_sql = (id_camiseta, )
@@ -709,27 +709,11 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         except Exception as e:
             showwarning("Advertencia", f"Error en la base de datos al entrar a la ventana de compra.\n{e}") 
         
-    def descripcion_camiseta(self):
-        pass
-     
-    def vista_compra(self, imagen_camiseta, id_camiseta, recargar_ventana=False):
-        producto, precio, marca, equipo, temporada, jugador, version, color, descripcion = self.obtener_informacion_camiseta(id_camiseta)
-        
-        if recargar_ventana:
-            for widget in self.ventana_compra.winfo_children():
-                widget.destroy()
-        else:
-            self.ventana_compra = Toplevel()
-            self.ventana_compra.title(f"Comprar {producto} {jugador} {color}")
-            self.ventana_compra.geometry("1366x768")
-            self.ventana_compra.resizable(False, False)
-            self.ventana_compra.config(bg='white')
-            self.ventana_compra.iconbitmap(icono)
-        
+    def descripcion_camiseta(self, id_camiseta, imagen_camiseta):   # colocar la descripción de la camiseta en pantalla, requiere el id y la imagen 
+        producto, precio, marca, equipo, temporada, jugador, version, color, descripcion = self.obtener_informacion_camiseta(id_camiseta) # obtener info de obtener_infomacion_camiseta
         
         frame_descripcion = Frame(self.ventana_compra, bg='white', width=700, height=768, border=0)
         frame_descripcion.pack(side=LEFT)
-    
         
         muestra_camiseta = Label(frame_descripcion, image=imagen_camiseta)
         muestra_camiseta.place(x=10, y=10)
@@ -763,13 +747,18 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         label_precio = Label(frame_descripcion, text=f"Precio: {precio}", bg='white', font=("Calibri", 16))
         label_precio.place(x=350, y=460)
         
-        # botones de compra y añadir a favoritos
+        # botón de compra
         boton_compra = Button(frame_descripcion, text="Comprar ahora", width=24, bg="Green", fg="white", font=("Century Gothic", 16))
         boton_compra.place(x=10, y=460)
         
-        boton_añadir_favoritos = Button(frame_descripcion, text="Añadir a favoritos", width=24, bg='salmon', fg="white", font=("Century Gothic", 16))
-        boton_añadir_favoritos.place(x=10, y=510)
         
+        # logo aplicación
+        logo = Label(frame_descripcion, image=imagen_proyecto)
+        logo.place(x=350, y=505)
+        
+        return frame_descripcion
+    
+    def talles_camiseta(self, frame_descripcion, id_camiseta):  # método para colocar los widgets de talles y verificar stock
         # talles 
         cantidades = [1, 2, 3, 4, 5]
             
@@ -840,32 +829,89 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
                 label_xxl.config(fg='red')
             
         except Exception as e:
-            showwarning("Advertencia", f"Error al cargar la información de talles\n{e}")      
-            
-        # logo aplicación
-        logo = Label(frame_descripcion, image=imagen_proyecto)
-        logo.place(x=350, y=505)
-            
+            showwarning("Advertencia", f"Error al cargar la información de talles\n{e}") 
+    
+    
+    def boton_favoritos(self, id_camiseta, id_cliente, frame_descripcion):     # este método coloca el botón de favoritos junto a la descripción de la camiseta
         try:
-            # productos relacionados
-            # seleccionar productos relacionados por marca y version
-            consulta_productos_relacionados = """
-            SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE marca = ? and version = ? and id_producto != ? ORDER BY RANDOM() LIMIT 6"""
-            parametros_productos_relacionados = (marca, version, id_camiseta)
+            tabla = coneccion.cursor()
+            tabla.execute("SELECT COUNT(*) FROM favoritos WHERE id_producto = ? AND id_usuario = ?", (id_camiseta, id_cliente)) # verificar si la camiseta está en favoritos
+            favorito = tabla.fetchone()[0]  # obtener la primera y unica posicion de la tupla
+            # definir botón dependiendo de si se encuentra o no en favoritos
+            if favorito:
+                boton_añadir_favoritos = Button(frame_descripcion, text="Quitar de favoritos", width=24, bg='red', fg="white", font=("Century Gothic", 16),
+                                                command=lambda : self.eliminar_favorito(id_camiseta, id_cliente, frame_descripcion))
+            else:
+                boton_añadir_favoritos = Button(frame_descripcion, text="Añadir a favoritos", width=24, bg='salmon', fg="white", font=("Century Gothic", 16),
+                                                command=lambda : self.agregar_favorito(id_camiseta, id_cliente, frame_descripcion))
+                
+            boton_añadir_favoritos.place(x=10, y=510)
+        except Exception as e:
+            showwarning("Advertencia", f"Error al comprobar si el producto se encuentra en favoritos.\n{e}")
+            
+    def agregar_favorito(self, id_camiseta, id_cliente, frame_descripcion): # agregar producto a favoritos
+        confirmar = askyesno("Añadir a favoritos", f"¿Deseas añadir este producto a favoritos?")
+        if confirmar:
+            try:
+                datos = (id_camiseta, id_cliente)
+                tabla = coneccion.cursor()
+                tabla.execute("INSERT INTO favoritos (id_producto, id_usuario) VALUES (?, ?)", datos)
+                coneccion.commit()
+                nombre_camiseta = self.obtener_informacion_camiseta(id_camiseta)[0] # obtener primera posición de la tupla
+                showinfo("Producto favorito", f"Agregaste '{nombre_camiseta}' a tu lista de favoritos.")
+                self.boton_favoritos(id_camiseta, id_cliente, frame_descripcion)
+            except Exception as e:
+                showwarning("Advertencia", f"Error al agregar el producto a favoritos.\n{e}")
+    
+    def eliminar_favorito(self, id_camiseta, id_cliente, frame_descripcion): # eliminar producto de favoritos   
+        confirmar = askyesno("Eliminar de favoritos", f"¿Deseas eliminar este producto de favoritos?")
+        if confirmar:
+            try:
+                datos = (id_camiseta, id_cliente)
+                tabla = coneccion.cursor()
+                tabla.execute("DELETE FROM favoritos WHERE id_producto = ? AND id_usuario = ?", datos)
+                coneccion.commit()
+                nombre_camiseta = self.obtener_informacion_camiseta(id_camiseta)[0] # obtener primera posición de la tupla
+                showinfo("Producto favorito", f"Eliminaste '{nombre_camiseta}' de tu lista de favoritos.")
+                self.boton_favoritos(id_camiseta, id_cliente, frame_descripcion)
+            except Exception as e:
+                showwarning("Advertencia", f"Error al agregar el producto a favoritos.\n{e}")
+    
+    
+    def productos_relacionados(self, id_camiseta):  # mostrar productos relacionados junto a la descripción de la camiseta
+        datos_camiseta = self.obtener_informacion_camiseta(id_camiseta) 
+        # obtener marca y versión de la camiseta actual para encontrar productos similares
+        marca = datos_camiseta[2]
+        version = datos_camiseta[6]
+        
+        try:
+            # consultas para traer los productos relacionados
+            if version == "Swingman":   # si la versión de la camiseta es swingman, vamos a mostrar todas más de estas camisetas sin filtrar por marca, ya que hay menos.
+                consulta_productos_relacionados = """
+                SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE version = ? and id_producto != ? ORDER BY RANDOM() LIMIT 6
+                """
+                parametros_productos_relacionados = (version, id_camiseta)
+            else:
+                consulta_productos_relacionados = """
+                SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE marca = ? and version = ? and id_producto != ? ORDER BY RANDOM() LIMIT 6"""
+                parametros_productos_relacionados = (marca, version, id_camiseta)
+                
             camisetas = cargar_camisetas.cargar_camisetas(consulta_sql=consulta_productos_relacionados, parametro_sql=parametros_productos_relacionados,
                                                           modificar_tamaño=True, tamaño_imagenes=(280, 350))  
             
-            frame_camisetas = inicio_cliente.configurar_scrollbar(self.ventana_compra, mousewheel=False)
+             # este frame se va a ubicar a la derecha del frame_descripcion, van a ser compatibles ya que ambos son posicionados con pack
+            frame_camisetas = inicio_cliente.configurar_scrollbar(self.ventana_compra, mousewheel=False)  # mousewheel en False es para que la rueda del mouse este desabilitada 
             frame_camisetas.config(border=0, bg='white')
             label_productos_relacionados = Label(frame_camisetas, text="Ver productos relacionados", bg='white', font=("Calibri", 12))
             label_productos_relacionados.grid(row=0, column=0, columnspan=2)
             
+            # lógica para colocar camisetas en el frame
             fila = 1
             columna = 0
             
             for imagen, descripcion, id in camisetas:
                 camiseta_recomendada = Button(frame_camisetas, image=imagen, bg='white', border=0, cursor='hand2',
-                                              command=lambda imagen_relacionada=imagen, id_relacionado=id : self.vista_compra(imagen_relacionada, id_relacionado, recargar_ventana=True))
+                        command=lambda imagen_relacionada=imagen, id_relacionado=id : self.vista_compra(imagen_relacionada, id_relacionado, self.id_cliente, recargar_ventana=True))
                 camiseta_recomendada.grid(row=fila, column=columna, padx=20, pady=10)
                 
                 descripcion_camiseta = Label(frame_camisetas, text=descripcion, bg='white', font=("Calibri", 11))
@@ -880,9 +926,33 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
     
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar camisetas relacionadas.\n{e}") 
-                
+            
+     
+    def vista_compra(self, imagen_camiseta, id_camiseta, id_cliente, recargar_ventana=False):   # crear la ventana de compra
+        self.id_cliente = id_cliente
+        datos_camiseta = self.obtener_informacion_camiseta(id_camiseta)
+        # obtener el nombre del producto, jugador y color de la camiseta para colocarlos en el título de la ventana
+        producto = datos_camiseta[0]
+        jugador = datos_camiseta[5]
+        color = datos_camiseta[7]
         
-                     
+        if recargar_ventana:    # al elegir un producto relacionado, se recarga la ventana eliminando los frames actuales reemplazandolos por nuevos
+            for widget in self.ventana_compra.winfo_children():
+                widget.destroy()
+        else:   # crear y mostrar la ventana de compra al elegir una camiseta desde la ventana de inicio. 
+            self.ventana_compra = Toplevel()
+            self.ventana_compra.title(f"Comprar {producto} {jugador} {color}")
+            self.ventana_compra.geometry("1366x768")
+            self.ventana_compra.resizable(False, False)
+            self.ventana_compra.config(bg='white')
+            self.ventana_compra.iconbitmap(icono)
+        
+        frame_descripcion = self.descripcion_camiseta(id_camiseta, imagen_camiseta) # descripción de la camiseta
+        self.boton_favoritos(id_camiseta, id_cliente, frame_descripcion)
+        self.talles_camiseta(frame_descripcion, id_camiseta)    # cargar talles de la camiseta
+        self.productos_relacionados(id_camiseta)    # cargar camisetas relacionadas
+        
+                             
 # widgets login
 ruta_fondo = "imagenes/leBron-dunk.jpg"
 imagen_fondo = Image.open(ruta_fondo)
