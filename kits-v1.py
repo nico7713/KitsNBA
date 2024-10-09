@@ -709,7 +709,9 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         except Exception as e:
             showwarning("Advertencia", f"Error en la base de datos al entrar a la ventana de compra.\n{e}") 
         
-                    
+    def descripcion_camiseta(self):
+        pass
+     
     def vista_compra(self, imagen_camiseta, id_camiseta, recargar_ventana=False):
         producto, precio, marca, equipo, temporada, jugador, version, color, descripcion = self.obtener_informacion_camiseta(id_camiseta)
         
@@ -842,7 +844,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             
         # logo aplicación
         logo = Label(frame_descripcion, image=imagen_proyecto)
-        logo.place(x=350, y=455)
+        logo.place(x=350, y=505)
             
         try:
             # productos relacionados
