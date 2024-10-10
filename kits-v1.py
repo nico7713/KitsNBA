@@ -748,7 +748,8 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         label_precio.place(x=350, y=460)
         
         # botón de compra
-        boton_compra = Button(frame_descripcion, text="Comprar ahora", width=24, bg="Green", fg="white", font=("Century Gothic", 16))
+        boton_compra = Button(frame_descripcion, text="Comprar ahora", width=24, bg="Green", fg="white", font=("Century Gothic", 16), cursor="hand2",
+                              command=lambda imagen=imagen_camiseta: confirmar_compra.vista_confirmar_compra(self.ventana_compra, self.id_cliente, id_camiseta, imagen))
         boton_compra.place(x=10, y=460)
         
         
@@ -766,38 +767,38 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         label_xs = Label(frame_descripcion, text="XS", bg='white', font=("Calibri", 14))
         label_xs.place(x=10, y=560)
         
-        combo_xs = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        combo_xs.place(x=10, y=590)
+        self.combo_xs = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        self.combo_xs.place(x=10, y=590)
         # S
         label_s = Label(frame_descripcion, text="S", bg='white', font=("Calibri", 14))
         label_s.place(x=60, y=560)
         
-        combo_s = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        combo_s.place(x=60, y=590)
+        self.combo_s = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        self.combo_s.place(x=60, y=590)
         # M
         label_m = Label(frame_descripcion, text="M", bg='white', font=("Calibri", 14))
         label_m.place(x=110, y=560)
         
-        combo_m = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        combo_m.place(x=110, y=590)
+        self.combo_m = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        self.combo_m.place(x=110, y=590)
         # L
         label_l = Label(frame_descripcion, text="L", bg='white', font=("Calibri", 14))
         label_l.place(x=160, y=560)
         
-        combo_l = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        combo_l.place(x=160, y=590)
+        self.combo_l = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        self.combo_l.place(x=160, y=590)
         # XL
         label_xl = Label(frame_descripcion, text="XL", bg='white', font=("Calibri", 14))
         label_xl.place(x=210, y=560)
         
-        combo_xl = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        combo_xl.place(x=210, y=590)
+        self.combo_xl = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        self.combo_xl.place(x=210, y=590)
         # XXL
         label_xxl = Label(frame_descripcion, text="XXL", bg='white', font=("Calibri", 14))
         label_xxl.place(x=260, y=560)
         
-        combo_xxl = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        combo_xxl.place(x=260, y=590)
+        self.combo_xxl = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
+        self.combo_xxl.place(x=260, y=590)
         
         # mostrar si hay stock disponible en los talles
         try:
@@ -810,22 +811,22 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             xs, s, m, l, xl, xxl = talles
             
             if xs[0] == 0:
-                combo_xs.config(state='disabled')
+                self.combo_xs.config(state='disabled')
                 label_xs.config(fg='red')
             if s[0] == 0:
-                combo_s.config(state='disabled')
+                self.combo_s.config(state='disabled')
                 label_s.config(fg='red')
             if m[0] == 0:
-                combo_m.config(state='disabled')
+                self.combo_m.config(state='disabled')
                 label_m.config(fg='red')
             if l[0] == 0:
-                combo_l.config(state='disabled')
+                self.combo_l.config(state='disabled')
                 label_l.config(fg='red')
             if xl[0] == 0:
-                combo_xl.config(state='disabled')
+                self.combo_xl.config(state='disabled')
                 label_xl.config(fg='red')
             if xxl[0] == 0:
-                combo_xxl.config(state='disabled')
+                self.combo_xxl.config(state='disabled')
                 label_xxl.config(fg='red')
             
         except Exception as e:
@@ -839,10 +840,10 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             favorito = tabla.fetchone()[0]  # obtener la primera y unica posicion de la tupla
             # definir botón dependiendo de si se encuentra o no en favoritos
             if favorito:
-                boton_añadir_favoritos = Button(frame_descripcion, text="Quitar de favoritos", width=24, bg='red', fg="white", font=("Century Gothic", 16),
+                boton_añadir_favoritos = Button(frame_descripcion, text="Quitar de favoritos", width=24, bg='red', fg="white", font=("Century Gothic", 16), cursor="hand2",
                                                 command=lambda : self.eliminar_favorito(id_camiseta, id_cliente, frame_descripcion))
             else:
-                boton_añadir_favoritos = Button(frame_descripcion, text="Añadir a favoritos", width=24, bg='salmon', fg="white", font=("Century Gothic", 16),
+                boton_añadir_favoritos = Button(frame_descripcion, text="Añadir a favoritos", width=24, bg='salmon', fg="white", font=("Century Gothic", 16), cursor="hand2",
                                                 command=lambda : self.agregar_favorito(id_camiseta, id_cliente, frame_descripcion))
                 
             boton_añadir_favoritos.place(x=10, y=510)
@@ -951,7 +952,70 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         self.boton_favoritos(id_camiseta, id_cliente, frame_descripcion)
         self.talles_camiseta(frame_descripcion, id_camiseta)    # cargar talles de la camiseta
         self.productos_relacionados(id_camiseta)    # cargar camisetas relacionadas
+
+
+class Comprar:
+    def __init__(self):
+        pass
+    
+    def vista_confirmar_compra(self, ventana_compra, id_cliente, id_producto, imagen_producto):
+        self.id_cliente = id_cliente
+        self.id_producto = id_producto
+        self.ventana_compra_original = ventana_compra
         
+        for widget in self.ventana_compra_original.winfo_children():
+            print(widget) 
+        
+        for widget in ventana_compra.winfo_children():
+            widget.destroy()
+        
+        ventana_compra.title("Confirmar compra")
+        
+        boton_volver = Button(ventana_compra, image=imagen_atras, bg='white', border=0)
+        boton_volver.place(x=0, y=0)
+     
+        boton_volver.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
+        boton_volver.bind("<Leave>", lambda e: e.widget.config(bg="white", highlightthickness=0))
+        
+        nombre, apellido, telefono, email = self.obtener_informacion_cliente() 
+        provincia, localidad, direccion, codigo_postal = self.obtener_informacion_cliente()   
+        nombre_producto, marca, version, precio = self.obtener_informacion_producto()
+        
+    def obtener_informacion_cliente(self):
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("SELECT nombre, apellido, num_telefono, email FROM usuarios WHERE id_usuario = ?", (self.id_cliente, ))
+            datos_cliente = tabla.fetchone()
+            return datos_cliente
+        except Exception as e:
+            showwarning("Advertencia", f"Error al cargar la información de cliente.\n{e}")
+            
+    def obtener_direccion_cliente(self):
+        try:
+            tabla = coneccion.cursor()
+            consulta = """
+            SELECT provincia, localidad, direccion, codigo_postal FROM ubicacion ubi
+            JOIN usuarios us
+            ON ubi.id_ubicacion = us.id_ubicacion
+            WHERE id_usuario = 2
+            """
+            tabla.execute(consulta, (self.id_cliente, ))
+            direccion_cliente = tabla.fetchone()
+            return direccion_cliente
+        except Exception as e:
+            showwarning("Advertencia", f"Error al cargar la dirección de cliente.\n{e}")
+            
+    def obtener_informacion_producto(self):
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("SELECT nombre_producto, marca, version, precio WHERE id_producto = ?", (self.id_producto, ))
+            datos_producto = tabla.fetchone()
+            return datos_producto
+        except Exception as e:
+            showwarning("Advertencia", f"Error al cargar la información de producto.\n{e}")
+            
+    
+    
                              
 # widgets login
 ruta_fondo = "imagenes/leBron-dunk.jpg"
@@ -1004,6 +1068,10 @@ ruta_volver = "botones/volver2.png"
 imagen_volver = Image.open(ruta_volver)
 imagen_volver = ImageTk.PhotoImage(imagen_volver)
 
+ruta_atras = "botones/atras.png"
+imagen_atras = Image.open(ruta_atras)
+imagen_atras = ImageTk.PhotoImage(imagen_atras)
+
 ruta_logo_proyecto = "imagenes/logo-png.png"
 imagen_proyecto = Image.open(ruta_logo_proyecto)
 imagen_proyecto = ImageTk.PhotoImage(imagen_proyecto)
@@ -1016,6 +1084,7 @@ vista_compra = VistaCompra()
 editar_cliente = EditarCliente()
 editar_direccion_cliente = EditarDireccionCliente()
 terminos = TerminosCondiciones()
+confirmar_compra = Comprar()
 
 # botón ingresar
 ingresar = Login()
