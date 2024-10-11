@@ -960,26 +960,38 @@ class Comprar:
     
     def vista_confirmar_compra(self, ventana_compra, id_cliente, id_producto, imagen_producto):
         self.id_cliente = id_cliente
-        self.id_producto = id_producto
-        self.ventana_compra_original = ventana_compra
+        self.id_producto = id_producto 
         
-        for widget in self.ventana_compra_original.winfo_children():
-            print(widget) 
-        
-        for widget in ventana_compra.winfo_children():
-            widget.destroy()
+        frame_descripcion, frame_camisetas = ventana_compra.winfo_children()    # obtener lista de widgets de la ventana (frame_descripcion y frame_camisetas (relacionadas))
+        frame_descripcion.pack_forget()
+        frame_camisetas.pack_forget()
         
         ventana_compra.title("Confirmar compra")
         
-        boton_volver = Button(ventana_compra, image=imagen_atras, bg='white', border=0)
+        boton_volver = Button(ventana_compra, image=imagen_atras, bg='white', border=0, command=lambda : self.volver(ventana_compra, frame_descripcion, frame_camisetas))
         boton_volver.place(x=0, y=0)
-     
+        
         boton_volver.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
         boton_volver.bind("<Leave>", lambda e: e.widget.config(bg="white", highlightthickness=0))
         
         nombre, apellido, telefono, email = self.obtener_informacion_cliente() 
         provincia, localidad, direccion, codigo_postal = self.obtener_informacion_cliente()   
         nombre_producto, marca, version, precio = self.obtener_informacion_producto()
+           
+     
+    def volver(self, ventana_compra, frame_descripcion, frame_camisetas):
+        index = 2   # la ventana_compra, inicialmente tiene 2 widgets (2 frames con descripcion[0] y productos relacionados[1]), todos los widgets que se le colocan en el método 
+        lista_widgets = ventana_compra.winfo_children() # vista_confirmar_compra, van a estar a partir de la posición 2. Entonces borramos a partir de esa posición
+        while index < len(lista_widgets):
+            lista_widgets[index].destroy()
+            index += 1
+        
+        frame_descripcion.pack(side=LEFT)   # mostrar los frames de la ventana anterior
+        frame_camisetas.pack(fill=BOTH, expand=1)
+            
+        
+        
+        
         
     def obtener_informacion_cliente(self):
         try:
@@ -1008,7 +1020,7 @@ class Comprar:
     def obtener_informacion_producto(self):
         try:
             tabla = coneccion.cursor()
-            tabla.execute("SELECT nombre_producto, marca, version, precio WHERE id_producto = ?", (self.id_producto, ))
+            tabla.execute("SELECT nombre_producto, marca, version, precio FROM productos WHERE id_producto = ?", (self.id_producto, ))
             datos_producto = tabla.fetchone()
             return datos_producto
         except Exception as e:
