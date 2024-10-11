@@ -761,7 +761,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
     
     def talles_camiseta(self, frame_descripcion, id_camiseta):  # método para colocar los widgets de talles y verificar stock
         # talles 
-        cantidades = [1, 2, 3, 4, 5]
+        cantidades = ["", 1, 2, 3, 4, 5]
             
         # XS
         label_xs = Label(frame_descripcion, text="XS", bg='white', font=("Calibri", 14))
@@ -930,22 +930,17 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             
             
     def obtener_talles(self):
-        xs = self.combo_xs.get()
-        s = self.combo_s.get()
-        m = self.combo_m.get()
-        l = self.combo_l.get()
-        xl = self.combo_xl.get()
-        xxl = self.combo_xxl.get()
-        
-        talles = [xs, s, m, l, xl, xxl]
-        talles_seleccionados = []
-        
-        for talle in talles:
-            if talle:
-                talles_seleccionados.append(talle)
-        
+        talles = {"XS": self.combo_xs.get(),
+                  "S": self.combo_s.get(),
+                  "M": self.combo_m.get(),
+                  "L": self.combo_l.get(),
+                  "XL": self.combo_xl.get(),
+                  "XXL": self.combo_xxl.get()
+                  } 
+                                # comprensión de diccionario, guardando únicamente los talles seleccionados por el usuario
+        talles_seleccionados = {talle: cantidad for talle, cantidad in talles.items() if cantidad}    
         return talles_seleccionados
-                    
+        
              
     def vista_compra(self, imagen_camiseta, id_camiseta, id_cliente, recargar_ventana=False):   # crear la ventana de compra
         self.id_cliente = id_cliente
@@ -997,9 +992,7 @@ class Comprar:
         boton_volver.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
         boton_volver.bind("<Leave>", lambda e: e.widget.config(bg="white", highlightthickness=0))
         
-        nombre, apellido, telefono, email = self.obtener_informacion_cliente() 
-        provincia, localidad, direccion, codigo_postal = self.obtener_informacion_cliente()   
-        nombre_producto, marca, version, precio = self.obtener_informacion_producto()
+        self.widgets_confirmar_compra(ventana_compra, talles, imagen_producto)
            
      
     def volver(self, ventana_compra, frame_descripcion, frame_camisetas):
@@ -1012,7 +1005,106 @@ class Comprar:
         frame_descripcion.pack(side=LEFT)   # mostrar los frames de la ventana anterior
         frame_camisetas.pack(fill=BOTH, expand=1)
             
+    
+    def widgets_confirmar_compra(self, ventana_compra, talles, imagen_producto):
+        nombre, apellido, telefono, email = self.obtener_informacion_cliente() 
+        provincia, localidad, direccion, codigo_postal = self.obtener_direccion_cliente()   
+        nombre_producto, marca, version, precio = self.obtener_informacion_producto()
         
+        label_titulo = Label(ventana_compra, text=f"Confirmar compra - {nombre_producto} {version}", bg='white', font=("Century Gothic", 16))
+        label_titulo.pack(pady=10)
+        
+        label_titulo_resumen = Label(ventana_compra, text=f"Resumen del pedido:", bg='white', font=("Century Gothic", 14))
+        label_titulo_resumen.pack(anchor='nw', padx=10, pady=30) 
+        # información producto
+        label_titulo_producto = Label(ventana_compra, text=f"Información del producto:", bg='white', font=("Century Gothic", 14))
+        label_titulo_producto.pack(anchor='nw', padx=10)
+        
+        label_nombre_producto = Label(ventana_compra, text=f"Producto: {nombre_producto}", bg='white', font=("Century Gothic", 14))
+        label_nombre_producto.pack(anchor='nw', padx=10) 
+        
+        label_marca_producto = Label(ventana_compra, text=f"Marca: {marca}", bg='white', font=("Century Gothic", 14))
+        label_marca_producto.pack(anchor='nw', padx=10) 
+        
+        label_version_producto = Label(ventana_compra, text=f"Versión: {version}", bg='white', font=("Century Gothic", 14))
+        label_version_producto.pack(anchor='nw', padx=10) 
+        
+        
+        # información usuario
+        label_espacio = Label(ventana_compra, text="", bg='white', font=("Century Gothic", 14))
+        label_espacio.pack(anchor='nw', padx=10, pady=2)  
+        
+        label_info_usuario = Label(ventana_compra, text=f"Información del usuario:", bg='white', font=("Century Gothic", 14))
+        label_info_usuario.pack(anchor='nw', padx=10)
+        
+        label_nombre_usuario = Label(ventana_compra, text=f"Nombre/s: {nombre}", bg='white', font=("Century Gothic", 14))
+        label_nombre_usuario.pack(anchor='nw', padx=10)  
+        
+        label_apellido_usuario = Label(ventana_compra, text=f"Apellido/s: {apellido}", bg='white', font=("Century Gothic", 14))
+        label_apellido_usuario.pack(anchor='nw', padx=10)  
+        
+        label_tel_usuario = Label(ventana_compra, text=f"Número de teléfono: {telefono}", bg='white', font=("Century Gothic", 14))
+        label_tel_usuario.pack(anchor='nw', padx=10)  
+        
+        label_email_usuario = Label(ventana_compra, text=f"Email: {email}", bg='white', font=("Century Gothic", 14))
+        label_email_usuario.pack(anchor='nw', padx=10)  
+        
+        # informacion de compra
+        label_espacio2 = Label(ventana_compra, text="", bg='white', font=("Century Gothic", 14))
+        label_espacio2.pack(anchor='nw', padx=10, pady=2) 
+        
+        label_info_compra = Label(ventana_compra, text=f"Información de compra:", bg='white', font=("Century Gothic", 14))
+        label_info_compra.pack(anchor='nw', padx=10)
+        
+        talles_seleccionados = list(talles.keys())
+        mostrar_talles = ""
+        for talle in talles_seleccionados:
+            mostrar_talles += f"{talle} ({talles[talle]}) "
+         
+        label_talle_compra = Label(ventana_compra, text=f"Talle/s: {mostrar_talles}", bg='white', font=("Century Gothic", 14))
+        label_talle_compra.pack(anchor='nw', padx=10)
+        
+        cantidad = []
+        for talle in list(talles.values()):
+            cantidad.append(int(talle))
+            
+        label_cantidad_compra = Label(ventana_compra, text=f"Cantidad: {sum(cantidad)}", bg='white', font=("Century Gothic", 14))
+        label_cantidad_compra.pack(anchor='nw', padx=10)
+        
+        label_precio_unitario = Label(ventana_compra, text=f"Precio unitario: {precio}", bg='white', font=("Century Gothic", 14))
+        label_precio_unitario.pack(anchor='nw', padx=10)
+        
+        label_precio_total = Label(ventana_compra, text=f"Precio total: {precio * sum(cantidad)}", bg='white', font=("Century Gothic", 14))
+        label_precio_total.pack(anchor='nw', padx=10)
+        
+        # información de dirección del cliente
+        label_info_direccion = Label(ventana_compra, text=f"Información de dirección y envío:", bg='white', font=("Century Gothic", 14))
+        label_info_direccion.place(x=500, y=135)
+        
+        label_provincia = Label(ventana_compra, text=f"Provincia: {provincia}", bg='white', font=("Century Gothic", 14))
+        label_provincia.place(x=500, y=165) 
+        
+        label_localidad = Label(ventana_compra, text=f"Localidad: {localidad}", bg='white', font=("Century Gothic", 14))
+        label_localidad.place(x=500, y=195)
+        
+        label_direccion = Label(ventana_compra, text=f"Dirección: {direccion}", bg='white', font=("Century Gothic", 14))
+        label_direccion.place(x=500, y=225)  
+        
+        label_codigo_postal = Label(ventana_compra, text=f"Código postal: {codigo_postal}", bg='white', font=("Century Gothic", 14))
+        label_codigo_postal.place(x=500, y=255) 
+        
+        # muestra camiseta
+        label_camiseta = Label(ventana_compra, image=imagen_producto)
+        label_camiseta.place(x=950, y=100) 
+        
+        # notas del usuario
+        label_notas = Label(ventana_compra, text=f"Notas del usuario acerca del envío y dirección:", bg='white', font=("Century Gothic", 14))
+        label_notas.place(x=500, y=285)
+        
+        area_notas = Text(ventana_compra, width=50, height=9, bg='white', font=("Calibri", 12), wrap='word') 
+        area_notas.place(x=500, y=320)   
+        
+    
         
         
         
@@ -1032,7 +1124,7 @@ class Comprar:
             SELECT provincia, localidad, direccion, codigo_postal FROM ubicacion ubi
             JOIN usuarios us
             ON ubi.id_ubicacion = us.id_ubicacion
-            WHERE id_usuario = 2
+            WHERE id_usuario = ?
             """
             tabla.execute(consulta, (self.id_cliente, ))
             direccion_cliente = tabla.fetchone()
