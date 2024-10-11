@@ -928,7 +928,25 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar camisetas relacionadas.\n{e}") 
             
-     
+            
+    def obtener_talles(self):
+        xs = self.combo_xs.get()
+        s = self.combo_s.get()
+        m = self.combo_m.get()
+        l = self.combo_l.get()
+        xl = self.combo_xl.get()
+        xxl = self.combo_xxl.get()
+        
+        talles = [xs, s, m, l, xl, xxl]
+        talles_seleccionados = []
+        
+        for talle in talles:
+            if talle:
+                talles_seleccionados.append(talle)
+        
+        return talles_seleccionados
+                    
+             
     def vista_compra(self, imagen_camiseta, id_camiseta, id_cliente, recargar_ventana=False):   # crear la ventana de compra
         self.id_cliente = id_cliente
         datos_camiseta = self.obtener_informacion_camiseta(id_camiseta)
@@ -961,6 +979,11 @@ class Comprar:
     def vista_confirmar_compra(self, ventana_compra, id_cliente, id_producto, imagen_producto):
         self.id_cliente = id_cliente
         self.id_producto = id_producto 
+        talles = vista_compra.obtener_talles()
+        
+        if not talles:
+            showwarning("Advertencia", "Selecciona un talle.")
+            return
         
         frame_descripcion, frame_camisetas = ventana_compra.winfo_children()    # obtener lista de widgets de la ventana (frame_descripcion y frame_camisetas (relacionadas))
         frame_descripcion.pack_forget()
@@ -981,7 +1004,7 @@ class Comprar:
      
     def volver(self, ventana_compra, frame_descripcion, frame_camisetas):
         index = 2   # la ventana_compra, inicialmente tiene 2 widgets (2 frames con descripcion[0] y productos relacionados[1]), todos los widgets que se le colocan en el método 
-        lista_widgets = ventana_compra.winfo_children() # vista_confirmar_compra, van a estar a partir de la posición 2. Entonces borramos a partir de esa posición
+        lista_widgets = ventana_compra.winfo_children() # vista_confirmar_compra, van a estar posicionados a partir de la posición 2. Entonces borramos a partir de esa posición
         while index < len(lista_widgets):
             lista_widgets[index].destroy()
             index += 1
