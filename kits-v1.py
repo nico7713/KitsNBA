@@ -1095,17 +1095,41 @@ class Comprar:
         
         # muestra camiseta
         label_camiseta = Label(ventana_compra, image=imagen_producto)
-        label_camiseta.place(x=950, y=100) 
+        label_camiseta.place(x=1000, y=100) 
         
         # notas del usuario
         label_notas = Label(ventana_compra, text=f"Notas del usuario acerca del envío y dirección:", bg='white', font=("Century Gothic", 14))
         label_notas.place(x=500, y=285)
         
-        area_notas = Text(ventana_compra, width=50, height=9, bg='white', font=("Calibri", 12), wrap='word') 
-        area_notas.place(x=500, y=320)   
+        mensaje_inicial = """Notas adicionales para el envío
+Por favor, utiliza este espacio para agregar cualquier comentario sobre tu disponibilidad para recibir el pedido, o para especificar una dirección de envío alternativa. Asegúrate de que la información que proporciones sea clara y precisa, ya que cualquier error o ambigüedad podría retrasar o afectar la entrega de tu pedido.
+        """
+        area_notas = Text(ventana_compra, width=50, height=9, bg='white', fg='gray', font=("Calibri", 12), wrap='word') 
+        area_notas.insert("1.0", mensaje_inicial)
+        area_notas.place(x=500, y=320)  
         
+        def borrar_mensaje(event):
+            if area_notas.get("1.0", "end-1c"):   # si el texto es el mensaje inicial
+                area_notas.delete("1.0", "end") 
+                area_notas.config(fg='black')
+        
+        area_notas.bind("<FocusIn>", borrar_mensaje)
+        
+        
+         
+        
+        
+        
+        # terminos y condiciones
+        label_terminos = Label(ventana_compra, text=f"Antes de realizar la compra, asegúrate\nde haber leído y entendido los", bg='white', font=("Calibri", 14))
+        label_terminos.place(x=500, y=540)
     
+        boton_terminos = Button(ventana_compra, text=f"Términos y condiciones", bg='white', font=("Calibri", 14), border=0, cursor="hand2",
+                                command=lambda : terminos.interfaz_terminos(nombre))
+        boton_terminos.place(x=555, y=585)
         
+        boton_terminos.bind("<Enter>", lambda e: e.widget.config(font=("Calibri", 14, "bold", "underline")))
+        boton_terminos.bind("<Leave>", lambda e: e.widget.config(font=("Calibri", 14)))
         
         
     def obtener_informacion_cliente(self):
