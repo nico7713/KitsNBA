@@ -4,6 +4,9 @@ from tkinter.messagebox import *
 import tkinter.simpledialog
 from PIL import Image, ImageTk
 import sqlite3
+import os
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 # ventana de inicio
 icono = "icono-logo.ico"
@@ -1219,6 +1222,9 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
                             coneccion.commit()
                             
                         showinfo("¡Felicitaciones!", f"Compraste {nombre_producto}")
+                        tabla.execute("SELECT MAX(id_venta) FROM ventas")
+                        id_compra = tabla.fetchone()[0]
+                        self.descargar_ticket_pdf(id_compra, talles) 
                         ventana_compra.destroy()
                         
                     except Exception as e:
@@ -1227,6 +1233,69 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
                 showwarning("Advertencia", "Tarjeta de débito inválida.")
         else:
             showwarning("Advertencia", "Completa los campos de entrada correspondientes.")
+            
+    def descargar_ticket_pdf(self, id_compra, talles):
+        confirmar_pdf = askyesno("Ticket PDF", "Gracias por tu compra\n¿Deseas descargar el ticket?")
+        if confirmar_pdf:
+            nombre, apellido, telefono, email = self.obtener_informacion_cliente() 
+            provincia, localidad, direccion, codigo_postal = self.obtener_direccion_cliente()   
+            nombre_producto, marca, version, precio = self.obtener_informacion_producto()
+            
+            talles_seleccionados = list(talles.keys())
+            mostrar_talles = ""
+            for talle in talles_seleccionados:
+                mostrar_talles += f"{talle} ({talles[talle]}) "
+                
+            cantidad = []
+            for talle in list(talles.values()):
+                cantidad.append(int(talle))
+                
+            cantidad = sum(cantidad)
+            
+            escritorio = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+            archivo_pdf = os.path.join(escritorio, f"ticket_compra_{id_compra}.pdf")
+            
+            # Crear objeto canvas
+            c = canvas.Canvas(archivo_pdf, pagesize=letter)
+            c.setTitle(f"Ticket de compra - {id_compra}")
+            
+            # Titulo
+            c.setFont("Helvetica-Bold", 18)
+            c.drawString(250, 730, "Ticket de Compra")
+            
+            # Datos del cliente
+            c.setFont("Helvetica-Oblique", 16)
+            c.drawString(250, 680, "Datos del cliente")
+            c.setFont("Helvetica", 16)
+            c.drawString(250, 660, f"Nombre: {nombre}")
+            c.drawString(250, 640, f"Apellido: {apellido}")
+            c.drawString(250, 620, f"Número de teléfono: {telefono}")
+            c.drawString(250, 600, f"Email: {email}") 
+            
+            # Dirección del cliente
+            c.setFont("Helvetica-Oblique", 16)
+            c.drawString(250, 550, "Dirección del cliente")
+            c.setFont("Helvetica", 16)
+            c.drawString(250, 530, f"Provincia: {provincia}")
+            c.drawString(250, 510, f"Localidad:  {localidad}")
+            c.drawString(250, 490, f"Dirección: {direccion}")
+            c.drawString(250, 470, f"Código postal: {codigo_postal}") 
+            
+            # Información de venta
+            c.setFont("Helvetica-Oblique", 16)
+            c.drawString(250, 420, "Información de venta")
+            c.setFont("Helvetica", 16)
+            c.drawString(250, 400, f"Producto: {nombre_producto}")
+            c.drawString(250, 380, f"Marca: {marca}")
+            c.drawString(250, 360, f"Versión: {version}")
+            c.drawString(250, 340, f"Talles: {mostrar_talles}")
+            c.drawString(250, 320, f"Cantidad: {cantidad}")
+            c.drawString(250, 300, f"Precio Unitario: ${precio}")
+            c.drawString(250, 280, f"Total: ${precio * cantidad}")
+            c.drawString(250, 260, f"Ticket: {id_compra}")
+
+            c.save()
+            showinfo("PDF guardado", "Ya puedes ver el ticket de compra.\nSe guardó en tu escritorio.")
     
                              
 # widgets login
