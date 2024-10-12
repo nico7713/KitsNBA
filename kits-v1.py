@@ -284,7 +284,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         
     def ver_compras(self, ventana): # ver compras del usuario
         consulta_sql = f'''
-                SELECT imagen, nombre_producto, jugador, precio, p.id_producto FROM productos p
+                SELECT DISTINCT imagen, nombre_producto, jugador, precio, p.id_producto FROM productos p
                 JOIN ventas v
                 ON p.id_producto = v.id_producto
                 WHERE v.id_usuario = ?
@@ -1011,49 +1011,51 @@ class Comprar:
         provincia, localidad, direccion, codigo_postal = self.obtener_direccion_cliente()   
         nombre_producto, marca, version, precio = self.obtener_informacion_producto()
         
-        label_titulo = Label(ventana_compra, text=f"Confirmar compra - {nombre_producto} {version}", bg='white', font=("Century Gothic", 16))
+        fuente = "Calibri"
+        
+        label_titulo = Label(ventana_compra, text=f"Confirmar compra - {nombre_producto} {version}", bg='white', font=(fuente, 16))
         label_titulo.pack(pady=10)
         
-        label_titulo_resumen = Label(ventana_compra, text=f"Resumen del pedido:", bg='white', font=("Century Gothic", 14))
+        label_titulo_resumen = Label(ventana_compra, text=f"Resumen del pedido:", bg='white', font=(fuente, 14))
         label_titulo_resumen.pack(anchor='nw', padx=10, pady=30) 
         # información producto
-        label_titulo_producto = Label(ventana_compra, text=f"Información del producto:", bg='white', font=("Century Gothic", 14))
+        label_titulo_producto = Label(ventana_compra, text=f"Información del producto:", bg='white', font=(fuente, 14))
         label_titulo_producto.pack(anchor='nw', padx=10)
         
-        label_nombre_producto = Label(ventana_compra, text=f"Producto: {nombre_producto}", bg='white', font=("Century Gothic", 14))
+        label_nombre_producto = Label(ventana_compra, text=f"Producto: {nombre_producto}", bg='white', font=(fuente, 14))
         label_nombre_producto.pack(anchor='nw', padx=10) 
         
-        label_marca_producto = Label(ventana_compra, text=f"Marca: {marca}", bg='white', font=("Century Gothic", 14))
+        label_marca_producto = Label(ventana_compra, text=f"Marca: {marca}", bg='white', font=(fuente, 14))
         label_marca_producto.pack(anchor='nw', padx=10) 
         
-        label_version_producto = Label(ventana_compra, text=f"Versión: {version}", bg='white', font=("Century Gothic", 14))
+        label_version_producto = Label(ventana_compra, text=f"Versión: {version}", bg='white', font=(fuente, 14))
         label_version_producto.pack(anchor='nw', padx=10) 
         
         
         # información usuario
-        label_espacio = Label(ventana_compra, text="", bg='white', font=("Century Gothic", 14))
+        label_espacio = Label(ventana_compra, text="", bg='white', font=(fuente, 14))
         label_espacio.pack(anchor='nw', padx=10, pady=2)  
         
-        label_info_usuario = Label(ventana_compra, text=f"Información del usuario:", bg='white', font=("Century Gothic", 14))
+        label_info_usuario = Label(ventana_compra, text=f"Información del usuario:", bg='white', font=(fuente, 14))
         label_info_usuario.pack(anchor='nw', padx=10)
         
-        label_nombre_usuario = Label(ventana_compra, text=f"Nombre/s: {nombre}", bg='white', font=("Century Gothic", 14))
+        label_nombre_usuario = Label(ventana_compra, text=f"Nombre/s: {nombre}", bg='white', font=(fuente, 14))
         label_nombre_usuario.pack(anchor='nw', padx=10)  
         
-        label_apellido_usuario = Label(ventana_compra, text=f"Apellido/s: {apellido}", bg='white', font=("Century Gothic", 14))
+        label_apellido_usuario = Label(ventana_compra, text=f"Apellido/s: {apellido}", bg='white', font=(fuente, 14))
         label_apellido_usuario.pack(anchor='nw', padx=10)  
         
-        label_tel_usuario = Label(ventana_compra, text=f"Número de teléfono: {telefono}", bg='white', font=("Century Gothic", 14))
+        label_tel_usuario = Label(ventana_compra, text=f"Número de teléfono: {telefono}", bg='white', font=(fuente, 14))
         label_tel_usuario.pack(anchor='nw', padx=10)  
         
-        label_email_usuario = Label(ventana_compra, text=f"Email: {email}", bg='white', font=("Century Gothic", 14))
+        label_email_usuario = Label(ventana_compra, text=f"Email: {email}", bg='white', font=(fuente, 14))
         label_email_usuario.pack(anchor='nw', padx=10)  
         
         # informacion de compra
-        label_espacio2 = Label(ventana_compra, text="", bg='white', font=("Century Gothic", 14))
+        label_espacio2 = Label(ventana_compra, text="", bg='white', font=(fuente, 14))
         label_espacio2.pack(anchor='nw', padx=10, pady=2) 
         
-        label_info_compra = Label(ventana_compra, text=f"Información de compra:", bg='white', font=("Century Gothic", 14))
+        label_info_compra = Label(ventana_compra, text=f"Información de compra:", bg='white', font=(fuente, 14))
         label_info_compra.pack(anchor='nw', padx=10)
         
         talles_seleccionados = list(talles.keys())
@@ -1061,64 +1063,59 @@ class Comprar:
         for talle in talles_seleccionados:
             mostrar_talles += f"{talle} ({talles[talle]}) "
          
-        label_talle_compra = Label(ventana_compra, text=f"Talle/s: {mostrar_talles}", bg='white', font=("Century Gothic", 14))
+        label_talle_compra = Label(ventana_compra, text=f"Talle/s: {mostrar_talles}", bg='white', font=(fuente, 14))
         label_talle_compra.pack(anchor='nw', padx=10)
         
         cantidad = []
         for talle in list(talles.values()):
             cantidad.append(int(talle))
             
-        label_cantidad_compra = Label(ventana_compra, text=f"Cantidad: {sum(cantidad)}", bg='white', font=("Century Gothic", 14))
+        label_cantidad_compra = Label(ventana_compra, text=f"Cantidad: {sum(cantidad)}", bg='white', font=(fuente, 14))
         label_cantidad_compra.pack(anchor='nw', padx=10)
         
-        label_precio_unitario = Label(ventana_compra, text=f"Precio unitario: {precio}", bg='white', font=("Century Gothic", 14))
+        label_precio_unitario = Label(ventana_compra, text=f"Precio unitario: {precio}", bg='white', font=(fuente, 14))
         label_precio_unitario.pack(anchor='nw', padx=10)
         
-        label_precio_total = Label(ventana_compra, text=f"Precio total: {precio * sum(cantidad)}", bg='white', font=("Century Gothic", 14))
+        label_precio_total = Label(ventana_compra, text=f"Precio total: {precio * sum(cantidad)}", bg='white', font=(fuente, 14))
         label_precio_total.pack(anchor='nw', padx=10)
         
+        # frame línea
+        frame_linea1 = Frame(ventana_compra, bg='black', width=1, height=760)
+        frame_linea1.place(x=360, y=0)
+        
         # información de dirección del cliente
-        label_info_direccion = Label(ventana_compra, text=f"Información de dirección y envío:", bg='white', font=("Century Gothic", 14))
+        label_info_direccion = Label(ventana_compra, text=f"Información de dirección y envío:", bg='white', font=(fuente, 14))
         label_info_direccion.place(x=500, y=135)
         
-        label_provincia = Label(ventana_compra, text=f"Provincia: {provincia}", bg='white', font=("Century Gothic", 14))
+        label_provincia = Label(ventana_compra, text=f"Provincia: {provincia}", bg='white', font=(fuente, 14))
         label_provincia.place(x=500, y=165) 
         
-        label_localidad = Label(ventana_compra, text=f"Localidad: {localidad}", bg='white', font=("Century Gothic", 14))
+        label_localidad = Label(ventana_compra, text=f"Localidad: {localidad}", bg='white', font=(fuente, 14))
         label_localidad.place(x=500, y=195)
         
-        label_direccion = Label(ventana_compra, text=f"Dirección: {direccion}", bg='white', font=("Century Gothic", 14))
+        label_direccion = Label(ventana_compra, text=f"Dirección: {direccion}", bg='white', font=(fuente, 14))
         label_direccion.place(x=500, y=225)  
         
-        label_codigo_postal = Label(ventana_compra, text=f"Código postal: {codigo_postal}", bg='white', font=("Century Gothic", 14))
+        label_codigo_postal = Label(ventana_compra, text=f"Código postal: {codigo_postal}", bg='white', font=(fuente, 14))
         label_codigo_postal.place(x=500, y=255) 
         
-        # muestra camiseta
-        label_camiseta = Label(ventana_compra, image=imagen_producto)
-        label_camiseta.place(x=1000, y=100) 
-        
         # notas del usuario
-        label_notas = Label(ventana_compra, text=f"Notas del usuario acerca del envío y dirección:", bg='white', font=("Century Gothic", 14))
+        label_notas = Label(ventana_compra, text=f"Notas del usuario acerca del envío y dirección:", bg='white', font=(fuente, 14))
         label_notas.place(x=500, y=285)
         
-        mensaje_inicial = """Notas adicionales para el envío
+        self.mensaje_inicial = """Notas adicionales para el envío
 Por favor, utiliza este espacio para agregar cualquier comentario sobre tu disponibilidad para recibir el pedido, o para especificar una dirección de envío alternativa. Asegúrate de que la información que proporciones sea clara y precisa, ya que cualquier error o ambigüedad podría retrasar o afectar la entrega de tu pedido.
         """
-        area_notas = Text(ventana_compra, width=50, height=9, bg='white', fg='gray', font=("Calibri", 12), wrap='word') 
-        area_notas.insert("1.0", mensaje_inicial)
-        area_notas.place(x=500, y=320)  
+        self.area_notas = Text(ventana_compra, width=50, height=9, bg='white', fg='gray', font=("Calibri", 12), wrap='word') 
+        self.area_notas.insert("1.0", self.mensaje_inicial)
+        self.area_notas.place(x=500, y=320)  
         
         def borrar_mensaje(event):
-            if area_notas.get("1.0", "end-1c"):   # si el texto es el mensaje inicial
-                area_notas.delete("1.0", "end") 
-                area_notas.config(fg='black')
+            if self.area_notas.get("1.0", "end-1c"):   # si el texto es el mensaje inicial
+                self.area_notas.delete("1.0", "end") 
+                self.area_notas.config(fg='black')
         
-        area_notas.bind("<FocusIn>", borrar_mensaje)
-        
-        
-         
-        
-        
+        self.area_notas.bind("<FocusIn>", borrar_mensaje)
         
         # terminos y condiciones
         label_terminos = Label(ventana_compra, text=f"Antes de realizar la compra, asegúrate\nde haber leído y entendido los", bg='white', font=("Calibri", 14))
@@ -1130,8 +1127,39 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         
         boton_terminos.bind("<Enter>", lambda e: e.widget.config(font=("Calibri", 14, "bold", "underline")))
         boton_terminos.bind("<Leave>", lambda e: e.widget.config(font=("Calibri", 14)))
+    
+        # frame línea
+        frame_linea2 = Frame(ventana_compra, bg='black', width=1, height=760)
+        frame_linea2.place(x=990, y=0)
+    
+        # muestra camiseta
+        label_camiseta = Label(ventana_compra, image=imagen_producto)
+        label_camiseta.place(x=1025, y=100) 
         
+        # tarjeta de credito
+        label_credito = Label(ventana_compra, text="Tarjeta de débito", bg='white', fg='black', font=("Arial", 12)) 
+        label_credito.place(x=1110, y=550)
         
+        self.parte1 = Entry(ventana_compra, width=7, font=("Arial", 12))
+        self.parte1.place(x=1020, y=590) 
+
+        self.parte2 = Entry(ventana_compra, width=7, font=("Arial", 12))
+        self.parte2.place(x=1100, y=590) 
+
+        self.parte3 = Entry(ventana_compra, width=7, font=("Arial", 12))
+        self.parte3.place(x=1180, y=590) 
+
+        self.parte4 = Entry(ventana_compra, width=7, font=("Arial", 12))
+        self.parte4.place(x=1260, y=590) 
+    
+        #botón confirmar compra
+        boton_comprar = Button(ventana_compra, text=f"Confirmar compra", bg='gray22', fg='white', font=(fuente, 14), cursor="hand2",
+                               command=lambda : self.confirmar_compra(talles, ventana_compra))
+        boton_comprar.place(x=1100, y=640)
+        
+        boton_comprar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightthickness=2, highlightbackground="blue"))
+        boton_comprar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+    
     def obtener_informacion_cliente(self):
         try:
             tabla = coneccion.cursor()
@@ -1165,7 +1193,40 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar la información de producto.\n{e}")
             
-    
+    def confirmar_compra(self, talles, ventana_compra):
+        parte1 = self.parte1.get()
+        parte2 = self.parte2.get()
+        parte3 = self.parte3.get()
+        parte4 = self.parte4.get()
+        
+        if parte1 and parte2 and parte3 and parte4:
+            if parte1.isnumeric() and len(parte1) == 4 and parte2.isnumeric() and len(parte2) == 4 and parte3.isnumeric() and len(parte3) == 4 and parte4.isnumeric() and len(parte4) == 4:
+                nombre_producto = self.obtener_informacion_producto()[0]     # obtener nombre producto
+                confirmar = askyesno("Confirmar", f"¿Deseas comprar {nombre_producto}?\nUna vez lo confirmes, se procesará el pago.")
+                if confirmar:
+                    try:
+                        precio_unitario = self.obtener_informacion_producto()[3]     # obtener precio unitario
+                        notas_cliente = self.area_notas.get("1.0", "end-1c")    # obtener notas adicionales del cliente
+                        if notas_cliente == self.mensaje_inicial:
+                            notas_cliente = "El cliente no dio notas ni comentarios adicionales."
+                        tabla = coneccion.cursor()   
+                        for talle, cantidad in talles.items():
+                            cantidad = int(cantidad)
+                            precio_total_talle = precio_unitario * cantidad
+                            datos = (self.id_producto, self.id_cliente, precio_unitario, precio_total_talle, talle, cantidad, notas_cliente)
+                            tabla.execute("INSERT INTO ventas (id_producto, id_usuario, precio_unitario, precio_total, talle, cantidad, notas) VALUES (?, ?, ?, ?, ?, ?, ?)", datos)
+                            tabla.execute(f"UPDATE stock SET stock_talle = stock_talle - {cantidad} WHERE id_producto = ? AND talle = ?", (self.id_producto, talle))  
+                            coneccion.commit()
+                            
+                        showinfo("¡Felicitaciones!", f"Compraste {nombre_producto}")
+                        ventana_compra.destroy()
+                        
+                    except Exception as e:
+                        showwarning("Advertencia", f"Ocurrió un error al procesar el pago. Contacte al administrador.\n{e}")
+            else:
+                showwarning("Advertencia", "Tarjeta de débito inválida.")
+        else:
+            showwarning("Advertencia", "Completa los campos de entrada correspondientes.")
     
                              
 # widgets login
