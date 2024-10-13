@@ -762,78 +762,90 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         
         return frame_descripcion
     
+
     def talles_camiseta(self, frame_descripcion, id_camiseta):  # método para colocar los widgets de talles y verificar stock
-        # talles 
-        cantidades = ["", 1, 2, 3, 4, 5]
-            
-        # XS
-        label_xs = Label(frame_descripcion, text="XS", bg='white', font=("Calibri", 14))
-        label_xs.place(x=10, y=560)
-        
-        self.combo_xs = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        self.combo_xs.place(x=10, y=590)
-        # S
-        label_s = Label(frame_descripcion, text="S", bg='white', font=("Calibri", 14))
-        label_s.place(x=60, y=560)
-        
-        self.combo_s = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        self.combo_s.place(x=60, y=590)
-        # M
-        label_m = Label(frame_descripcion, text="M", bg='white', font=("Calibri", 14))
-        label_m.place(x=110, y=560)
-        
-        self.combo_m = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        self.combo_m.place(x=110, y=590)
-        # L
-        label_l = Label(frame_descripcion, text="L", bg='white', font=("Calibri", 14))
-        label_l.place(x=160, y=560)
-        
-        self.combo_l = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        self.combo_l.place(x=160, y=590)
-        # XL
-        label_xl = Label(frame_descripcion, text="XL", bg='white', font=("Calibri", 14))
-        label_xl.place(x=210, y=560)
-        
-        self.combo_xl = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        self.combo_xl.place(x=210, y=590)
-        # XXL
-        label_xxl = Label(frame_descripcion, text="XXL", bg='white', font=("Calibri", 14))
-        label_xxl.place(x=260, y=560)
-        
-        self.combo_xxl = ttk.Combobox(frame_descripcion, width=1, values=cantidades, font=("Calibri", 14), state='readonly')    
-        self.combo_xxl.place(x=260, y=590)
-        
-        # mostrar si hay stock disponible en los talles
         try:
             consulta = "SELECT stock_talle FROM stock WHERE id_producto = ?"
             parametro = (id_camiseta, )
             tabla = coneccion.cursor()
             tabla.execute(consulta, parametro)
             talles = tabla.fetchall()
-            
+                    
             xs, s, m, l, xl, xxl = talles
-            
-            if xs[0] == 0:
-                self.combo_xs.config(state='disabled')
-                label_xs.config(fg='red')
-            if s[0] == 0:
-                self.combo_s.config(state='disabled')
-                label_s.config(fg='red')
-            if m[0] == 0:
-                self.combo_m.config(state='disabled')
-                label_m.config(fg='red')
-            if l[0] == 0:
-                self.combo_l.config(state='disabled')
-                label_l.config(fg='red')
-            if xl[0] == 0:
-                self.combo_xl.config(state='disabled')
-                label_xl.config(fg='red')
-            if xxl[0] == 0:
-                self.combo_xxl.config(state='disabled')
-                label_xxl.config(fg='red')
-            
+            xs, s, m, l, xl, xxl = int(xs[0]), int(s[0]), int(m[0]), int(l[0]), int(xl[0]), int(xxl[0])     # convertir la cantidad de talles disponibles a entero
+        
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar la información de talles\n{e}") 
+                 
+        def cantidades_talles(stock):
+            return [""] + [i for i in range(1, stock + 1)]
+                 
+        # listas con la cantidad de camisetas que el usuario puede seleccionar en base al stock actual
+        cantidad_xs = cantidades_talles(xs)
+        cantidad_s = cantidades_talles(s)
+        cantidad_m = cantidades_talles(m)     
+        cantidad_l = cantidades_talles(l)
+        cantidad_xl = cantidades_talles(xl)
+        cantidad_xxl = cantidades_talles(xxl)
+            
+        # talles    
+        # XS
+        label_xs = Label(frame_descripcion, text="XS", bg='white', font=("Calibri", 14))
+        label_xs.place(x=10, y=560)
+        
+        self.combo_xs = ttk.Combobox(frame_descripcion, width=1, values=cantidad_xs, font=("Calibri", 14), state='readonly')    
+        self.combo_xs.place(x=10, y=590)
+        # S
+        label_s = Label(frame_descripcion, text="S", bg='white', font=("Calibri", 14))
+        label_s.place(x=60, y=560)
+        
+        self.combo_s = ttk.Combobox(frame_descripcion, width=1, values=cantidad_s, font=("Calibri", 14), state='readonly')    
+        self.combo_s.place(x=60, y=590)
+        # M
+        label_m = Label(frame_descripcion, text="M", bg='white', font=("Calibri", 14))
+        label_m.place(x=110, y=560)
+        
+        self.combo_m = ttk.Combobox(frame_descripcion, width=1, values=cantidad_m, font=("Calibri", 14), state='readonly')    
+        self.combo_m.place(x=110, y=590)
+        # L
+        label_l = Label(frame_descripcion, text="L", bg='white', font=("Calibri", 14))
+        label_l.place(x=160, y=560)
+        
+        self.combo_l = ttk.Combobox(frame_descripcion, width=1, values=cantidad_l, font=("Calibri", 14), state='readonly')    
+        self.combo_l.place(x=160, y=590)
+        # XL
+        label_xl = Label(frame_descripcion, text="XL", bg='white', font=("Calibri", 14))
+        label_xl.place(x=210, y=560)
+        
+        self.combo_xl = ttk.Combobox(frame_descripcion, width=1, values=cantidad_xl, font=("Calibri", 14), state='readonly')    
+        self.combo_xl.place(x=210, y=590)
+        # XXL
+        label_xxl = Label(frame_descripcion, text="XXL", bg='white', font=("Calibri", 14))
+        label_xxl.place(x=260, y=560)
+        
+        self.combo_xxl = ttk.Combobox(frame_descripcion, width=1, values=cantidad_xxl, font=("Calibri", 14), state='readonly')    
+        self.combo_xxl.place(x=260, y=590)
+        
+        # mostrar si hay stock disponible en los talles 
+        if xs == 0:
+            self.combo_xs.config(state='disabled')
+            label_xs.config(fg='red')
+        if s == 0:
+            self.combo_s.config(state='disabled')
+            label_s.config(fg='red')
+        if m == 0:
+            self.combo_m.config(state='disabled')
+            label_m.config(fg='red')
+        if l == 0:
+            self.combo_l.config(state='disabled')
+            label_l.config(fg='red')
+        if xl == 0:
+            self.combo_xl.config(state='disabled')
+            label_xl.config(fg='red')
+        if xxl == 0:
+            self.combo_xxl.config(state='disabled')
+            label_xxl.config(fg='red')
+        
     
     
     def boton_favoritos(self, id_camiseta, id_cliente, frame_descripcion):     # este método coloca el botón de favoritos junto a la descripción de la camiseta
