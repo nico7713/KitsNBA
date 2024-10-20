@@ -580,7 +580,11 @@ class EditarDireccionCliente:
         label_provincia = Label(editar_ubicacion, text="Provincia", bg="white", font=("Century Gothic", 12))
         label_provincia.place(x=10, y=10)
         
-        provincias = ["Buenos Aires", "Mendoza", "Santa Fe", "Chubut", "Cordoba", "Río Negro", "La Rioja", "Corrientes"]
+        provincias = ["Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba",
+                    "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa",
+                    "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro",
+                    "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe",
+                    "Santiago del Estero", "Tucumán"]
         self.entry_provincia = ttk.Combobox(editar_ubicacion, width=17, font=("Century Gothic", 12), values=provincias)
         self.entry_provincia.place(x=10, y=40)
         
@@ -1100,30 +1104,30 @@ class Comprar:
         
         # información de dirección del cliente
         label_info_direccion = Label(ventana_compra, text=f"Información de dirección y envío:", bg='white', font=(fuente, 14))
-        label_info_direccion.place(x=500, y=135)
+        label_info_direccion.place(x=500, y=85)
         
         label_provincia = Label(ventana_compra, text=f"Provincia: {provincia}", bg='white', font=(fuente, 14))
-        label_provincia.place(x=500, y=165) 
+        label_provincia.place(x=500, y=115) 
         
         label_localidad = Label(ventana_compra, text=f"Localidad: {localidad}", bg='white', font=(fuente, 14))
-        label_localidad.place(x=500, y=195)
+        label_localidad.place(x=500, y=145)
         
         label_direccion = Label(ventana_compra, text=f"Dirección: {direccion}", bg='white', font=(fuente, 14))
-        label_direccion.place(x=500, y=225)  
+        label_direccion.place(x=500, y=175)  
         
         label_codigo_postal = Label(ventana_compra, text=f"Código postal: {codigo_postal}", bg='white', font=(fuente, 14))
-        label_codigo_postal.place(x=500, y=255) 
+        label_codigo_postal.place(x=500, y=205) 
         
         # notas del usuario
         label_notas = Label(ventana_compra, text=f"Notas del usuario acerca del envío y dirección:", bg='white', font=(fuente, 14))
-        label_notas.place(x=500, y=285)
+        label_notas.place(x=500, y=235)
         
         self.mensaje_inicial = """Notas adicionales para el envío
 Por favor, utiliza este espacio para agregar cualquier comentario sobre tu disponibilidad para recibir el pedido, o para especificar una dirección de envío alternativa. Asegúrate de que la información que proporciones sea clara y precisa, ya que cualquier error o ambigüedad podría retrasar o afectar la entrega de tu pedido.
         """
         self.area_notas = Text(ventana_compra, width=50, height=9, bg='white', fg='gray', font=(fuente, 12), wrap='word') 
         self.area_notas.insert("1.0", self.mensaje_inicial)
-        self.area_notas.place(x=500, y=320)  
+        self.area_notas.place(x=500, y=280)  
         
         def borrar_mensaje(event):
             if self.area_notas.get("1.0", "end-1c"):   # si el texto es el mensaje inicial
@@ -1132,13 +1136,21 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         
         self.area_notas.bind("<FocusIn>", borrar_mensaje)
         
+        # tiempo estimado de envío
+        tiempo_estimado_envio = self.calcular_tiempo_envío()
+        label_tiempo_estimado = Label(ventana_compra, text=f"Tiempo de envío estimado: {tiempo_estimado_envio} días", bg='white', font=(fuente, 14))
+        label_tiempo_estimado.place(x=550, y=500) 
+        
+        label_imagen_envio = Label(ventana_compra, image=imagen_envio, bg="white")
+        label_imagen_envio.place(x=500, y=500) 
+        
         # terminos y condiciones
         label_terminos = Label(ventana_compra, text=f"Antes de realizar la compra, asegúrate\nde haber leído y entendido los", bg='white', font=("Calibri", 14))
-        label_terminos.place(x=500, y=540)
+        label_terminos.place(x=500, y=560)
     
         boton_terminos = Button(ventana_compra, text=f"Términos y condiciones", bg='white', font=(fuente, 14), border=0, cursor="hand2",
                                 command=lambda : terminos.interfaz_terminos(nombre))
-        boton_terminos.place(x=555, y=585)
+        boton_terminos.place(x=555, y=605)
         
         boton_terminos.bind("<Enter>", lambda e: e.widget.config(font=(fuente, 14, "bold", "underline")))
         boton_terminos.bind("<Leave>", lambda e: e.widget.config(font=(fuente, 14)))
@@ -1227,6 +1239,34 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar la información de producto.\n{e}")
             
+            
+    def calcular_tiempo_envío(self):
+        regiones = {
+                    "NOA": ["Jujuy", "Salta", "Tucumán", "Catamarca", "La Rioja", "Santiago del Estero"],
+                    "NEA": ["Misiones", "Corrientes", "Chaco", "Formosa"],
+                    "Cuyo": ["San Juan", "Mendoza", "San Luis"],
+                    "Pampeana": ["Buenos Aires", "Córdoba", "Entre Ríos", "La Pampa", "Santa Fe"],
+                    "Patagónica": ["Río Negro", "Neuquén", "Chubut", "Santa Cruz"]
+                }          
+        
+        dias_estimados = 0
+        
+        provincia_cliente = self.obtener_direccion_cliente()[0]
+        
+        if provincia_cliente in regiones["Cuyo"]:
+            dias_estimados = 1
+        if provincia_cliente in regiones["Pampeana"]:
+            dias_estimados = 3
+        if provincia_cliente in regiones["NOA"]:
+            dias_estimados = 4
+        if provincia_cliente in regiones["NEA"]:
+            dias_estimados = 7
+        if provincia_cliente in regiones["Patagónica"]:
+            dias_estimados = 9
+            
+        return dias_estimados
+        
+        
     
     def verificar_vencimiento_tarjeta(self, venc):
         try:
@@ -1441,6 +1481,10 @@ imagen_atras = ImageTk.PhotoImage(imagen_atras)
 ruta_logo_proyecto = "imagenes/logo-png.png"
 imagen_proyecto = Image.open(ruta_logo_proyecto)
 imagen_proyecto = ImageTk.PhotoImage(imagen_proyecto)
+
+ruta_envio = "botones/envio.png"
+imagen_envio = Image.open(ruta_envio)
+imagen_envio = ImageTk.PhotoImage(imagen_envio)
  
 
 # instancias
