@@ -847,7 +847,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             label_xxl.config(fg='red')
         
     
-    
+
     def boton_favoritos(self, id_camiseta, id_cliente, frame_descripcion):     # este método coloca el botón de favoritos junto a la descripción de la camiseta
         try:
             tabla = coneccion.cursor()
@@ -1121,7 +1121,7 @@ class Comprar:
         self.mensaje_inicial = """Notas adicionales para el envío
 Por favor, utiliza este espacio para agregar cualquier comentario sobre tu disponibilidad para recibir el pedido, o para especificar una dirección de envío alternativa. Asegúrate de que la información que proporciones sea clara y precisa, ya que cualquier error o ambigüedad podría retrasar o afectar la entrega de tu pedido.
         """
-        self.area_notas = Text(ventana_compra, width=50, height=9, bg='white', fg='gray', font=("Calibri", 12), wrap='word') 
+        self.area_notas = Text(ventana_compra, width=50, height=9, bg='white', fg='gray', font=(fuente, 12), wrap='word') 
         self.area_notas.insert("1.0", self.mensaje_inicial)
         self.area_notas.place(x=500, y=320)  
         
@@ -1136,12 +1136,12 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         label_terminos = Label(ventana_compra, text=f"Antes de realizar la compra, asegúrate\nde haber leído y entendido los", bg='white', font=("Calibri", 14))
         label_terminos.place(x=500, y=540)
     
-        boton_terminos = Button(ventana_compra, text=f"Términos y condiciones", bg='white', font=("Calibri", 14), border=0, cursor="hand2",
+        boton_terminos = Button(ventana_compra, text=f"Términos y condiciones", bg='white', font=(fuente, 14), border=0, cursor="hand2",
                                 command=lambda : terminos.interfaz_terminos(nombre))
         boton_terminos.place(x=555, y=585)
         
-        boton_terminos.bind("<Enter>", lambda e: e.widget.config(font=("Calibri", 14, "bold", "underline")))
-        boton_terminos.bind("<Leave>", lambda e: e.widget.config(font=("Calibri", 14)))
+        boton_terminos.bind("<Enter>", lambda e: e.widget.config(font=(fuente, 14, "bold", "underline")))
+        boton_terminos.bind("<Leave>", lambda e: e.widget.config(font=(fuente, 14)))
     
         # frame línea
         frame_linea2 = Frame(ventana_compra, bg='black', width=1, height=760)
@@ -1149,28 +1149,47 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
     
         # muestra camiseta
         label_camiseta = Label(ventana_compra, image=imagen_producto)
-        label_camiseta.place(x=1025, y=100) 
+        label_camiseta.place(x=1025, y=70) 
         
         # tarjeta de credito
-        label_credito = Label(ventana_compra, text="Tarjeta de débito", bg='white', fg='black', font=("Arial", 12)) 
-        label_credito.place(x=1110, y=550)
+        label_credito = Label(ventana_compra, text="Tarjeta de débito", bg='white', fg='black', font=(fuente, 12)) 
+        label_credito.place(x=1110, y=520)
         
-        self.parte1 = Entry(ventana_compra, width=7, font=("Arial", 12))
-        self.parte1.place(x=1020, y=590) 
+        self.parte1 = Entry(ventana_compra, width=7, font=(fuente, 12), justify='center')
+        self.parte1.place(x=1020, y=560) 
 
-        self.parte2 = Entry(ventana_compra, width=7, font=("Arial", 12))
-        self.parte2.place(x=1100, y=590) 
+        self.parte2 = Entry(ventana_compra, width=7, font=(fuente, 12), justify='center')
+        self.parte2.place(x=1100, y=560) 
 
-        self.parte3 = Entry(ventana_compra, width=7, font=("Arial", 12))
-        self.parte3.place(x=1180, y=590) 
+        self.parte3 = Entry(ventana_compra, width=7, font=(fuente, 12), justify='center')
+        self.parte3.place(x=1180, y=560) 
 
-        self.parte4 = Entry(ventana_compra, width=7, font=("Arial", 12))
-        self.parte4.place(x=1260, y=590) 
+        self.parte4 = Entry(ventana_compra, width=7, font=(fuente, 12), justify='center')
+        self.parte4.place(x=1260, y=560) 
+        
+        label_titular = Label(ventana_compra, text="Titular", bg='white', font=(fuente, 12))
+        label_titular.place(x=1000, y=600)
+        
+        self.titular = Entry(ventana_compra, font=(fuente, 12), justify='center', width=25)
+        self.titular.place(x=1000, y=630) 
+        
+        label_venc = Label(ventana_compra, text="Venc.", bg='white', font=(fuente, 12))
+        label_venc.place(x=1220, y=600)
+        
+        self.venc = Entry(ventana_compra, font=(fuente, 12), width=6, justify='center')
+        self.venc.place(x=1220, y=630) 
+        
+        label_cvv = Label(ventana_compra, text="CVV", bg='white', font=(fuente, 12))
+        label_cvv.place(x=1290, y=600)
+        
+        self.cvv = Entry(ventana_compra, font=(fuente, 12), width=6, justify='center')
+        self.cvv.place(x=1290, y=630) 
+         
     
         #botón confirmar compra
         boton_comprar = Button(ventana_compra, text=f"Confirmar compra", bg='gray22', fg='white', font=(fuente, 14), cursor="hand2",
                                command=lambda : self.confirmar_compra(talles, ventana_compra))
-        boton_comprar.place(x=1100, y=640)
+        boton_comprar.place(x=1100, y=675)
         
         boton_comprar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightthickness=2, highlightbackground="blue"))
         boton_comprar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
@@ -1208,43 +1227,97 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar la información de producto.\n{e}")
             
+    
+    def verificar_vencimiento_tarjeta(self, venc):
+        try:
+            if len(venc) not in [4, 5]:
+                return False
+            
+            if "/" not in venc:
+                return False
+                
+            mes, annio = venc.split("/")
+            if not (mes.isdigit() and annio.isdigit()):
+                return False
+            mes = int(mes)
+            annio = int(annio)
+            
+            if not (1 <= mes <= 12):
+                return False
+            
+            if annio < 24:
+                return False
+        except ValueError as e:
+            showwarning("Advertencia", "El vencimiento es incorrecto.\nPor favor intenta de nuevo ingresando datos correctos.")
+        
+        return True
+        
+            
     def confirmar_compra(self, talles, ventana_compra):
         parte1 = self.parte1.get()
         parte2 = self.parte2.get()
         parte3 = self.parte3.get()
         parte4 = self.parte4.get()
+        titular = self.titular.get()
+        cvv = self.cvv.get()
+        venc = self.venc.get()
         
-        if parte1 and parte2 and parte3 and parte4:
-            if parte1.isnumeric() and len(parte1) == 4 and parte2.isnumeric() and len(parte2) == 4 and parte3.isnumeric() and len(parte3) == 4 and parte4.isnumeric() and len(parte4) == 4:
-                nombre_producto = self.obtener_informacion_producto()[0]     # obtener nombre producto
-                confirmar = askyesno("Confirmar", f"¿Deseas comprar {nombre_producto}?\nUna vez lo confirmes, se procesará el pago.")
-                if confirmar:
-                    try:
-                        precio_unitario = self.obtener_informacion_producto()[3]     # obtener precio unitario
-                        notas_cliente = self.area_notas.get("1.0", "end-1c")    # obtener notas adicionales del cliente
-                        if notas_cliente == self.mensaje_inicial:
-                            notas_cliente = "El cliente no dio notas ni comentarios adicionales."
-                        tabla = coneccion.cursor()   
-                        for talle, cantidad in talles.items():
-                            cantidad = int(cantidad)
-                            precio_total_talle = precio_unitario * cantidad
-                            datos = (self.id_producto, self.id_cliente, precio_unitario, precio_total_talle, talle, cantidad, notas_cliente)
-                            tabla.execute("INSERT INTO ventas (id_producto, id_usuario, precio_unitario, precio_total, talle, cantidad, notas) VALUES (?, ?, ?, ?, ?, ?, ?)", datos)
-                            tabla.execute(f"UPDATE stock SET stock_talle = stock_talle - {cantidad} WHERE id_producto = ? AND talle = ?", (self.id_producto, talle))  
-                            coneccion.commit()
-                            
-                        showinfo("¡Felicitaciones!", f"Compraste {nombre_producto}")
-                        tabla.execute("SELECT MAX(id_venta) FROM ventas")
-                        id_compra = tabla.fetchone()[0]
-                        self.descargar_ticket_pdf(id_compra, talles) 
-                        ventana_compra.destroy()
-                        
-                    except Exception as e:
-                        showwarning("Advertencia", f"Ocurrió un error al procesar el pago. Contacte al administrador.\n{e}")
-            else:
-                showwarning("Advertencia", "Tarjeta de débito inválida.")
-        else:
-            showwarning("Advertencia", "Completa los campos de entrada correspondientes.")
+        if not all ([parte1, parte2, parte3, parte4]):
+            showwarning("Advertencia", "Completa todos los campos de tu tarjeta de débito")
+            return
+        
+        for parte in [parte1, parte2, parte3, parte4]:
+            if not (parte.isnumeric() and len(parte) == 4):
+                showwarning("Advertencia", "Cada parte del número de tarjeta debe tener 4 dígitos numéricos.")
+                return
+                
+        if not titular or titular.isnumeric():
+            showwarning("Advertencia", "Ingresa un nombre de titular válido.")
+            return
+        
+        if not (cvv.isnumeric() and 3 <= len(cvv) <= 4):
+            showwarning("Advertencia", "El CVV debe ser numérico y tener 3 o 4 dígitos.")
+            return
+            
+        if not (self.verificar_vencimiento_tarjeta(venc)):
+            showwarning("Advertencia", "La fecha de vencimiento es inválida. Debe estar en formato MM/AA.")
+            return
+        
+        
+        nombre_producto = self.obtener_informacion_producto()[0]     # obtener nombre producto
+        confirmar = askyesno("Confirmar", f"¿Deseas comprar {nombre_producto}?\nUna vez lo confirmes, se procesará el pago.")
+        
+        if confirmar:
+            self.procesar_compra(talles) 
+            ventana_compra.destroy()
+                                        
+            
+    def procesar_compra(self, talles):                      
+        # confirmar y procesar compra
+        nombre_producto = self.obtener_informacion_producto()[0] 
+        try:
+            precio_unitario = self.obtener_informacion_producto()[3]     # obtener precio unitario
+            notas_cliente = self.area_notas.get("1.0", "end-1c")         # obtener notas adicionales del cliente
+            if notas_cliente == self.mensaje_inicial or not notas_cliente:
+                notas_cliente = "El cliente no dio notas ni comentarios adicionales."
+                tabla = coneccion.cursor()   
+                for talle, cantidad in talles.items():
+                    cantidad = int(cantidad)
+                    precio_total_talle = precio_unitario * cantidad
+                    datos = (self.id_producto, self.id_cliente, precio_unitario, precio_total_talle, talle, cantidad, notas_cliente)
+                    tabla.execute("INSERT INTO ventas (id_producto, id_usuario, precio_unitario, precio_total, talle, cantidad, notas) VALUES (?, ?, ?, ?, ?, ?, ?)", datos)
+                    tabla.execute(f"UPDATE stock SET stock_talle = stock_talle - {cantidad} WHERE id_producto = ? AND talle = ?", (self.id_producto, talle))  
+                    coneccion.commit()
+                                            
+                showinfo("¡Felicitaciones!", f"Compraste {nombre_producto}")
+                tabla.execute("SELECT MAX(id_venta) FROM ventas")
+                id_compra = tabla.fetchone()[0]
+                self.descargar_ticket_pdf(id_compra, talles)   
+                    
+        except Exception as e:
+            showwarning("Advertencia", f"Ocurrió un error al procesar el pago. Contacte al administrador.\n{e}")
+            return
+            
             
     def descargar_ticket_pdf(self, id_compra, talles):
         confirmar_pdf = askyesno("Ticket PDF", "Gracias por tu compra\n¿Deseas descargar el ticket?")
@@ -1304,7 +1377,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
             c.drawString(250, 320, f"Cantidad: {cantidad}")
             c.drawString(250, 300, f"Precio Unitario: ${precio}")
             c.drawString(250, 280, f"Total: ${precio * cantidad}")
-            c.drawString(250, 260, f"Ticket: {id_compra}")
+            c.drawString(250, 260, f"Número de Ticket: {id_compra}")
 
             c.save()
             showinfo("PDF guardado", "Ya puedes ver el ticket de compra.\nSe guardó en tu escritorio.")
