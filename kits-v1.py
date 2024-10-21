@@ -47,7 +47,8 @@ class Login:    # Iniciar sesión
                         ventana_login.withdraw()
                     elif tipo_usuario == "admin":
                         # ventana de inicio para administradores
-                        pass
+                        inicio_admin.ventana_inicio_admin(id_usuario, self.username)
+                        ventana_login.withdraw()
                     else:
                         showwarning("Error al iniciar sesión", "Tipo de usuario desconocido.")
 
@@ -1255,14 +1256,16 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         
         if provincia_cliente in regiones["Cuyo"]:
             dias_estimados = 1
-        if provincia_cliente in regiones["Pampeana"]:
+        elif provincia_cliente in regiones["Pampeana"]:
             dias_estimados = 3
-        if provincia_cliente in regiones["NOA"]:
+        elif provincia_cliente in regiones["NOA"]:
             dias_estimados = 4
-        if provincia_cliente in regiones["NEA"]:
+        elif provincia_cliente in regiones["NEA"]:
             dias_estimados = 7
-        if provincia_cliente in regiones["Patagónica"]:
+        elif provincia_cliente in regiones["Patagónica"]:
             dias_estimados = 9
+        else:
+            dias_estimados = "Error al calcular"
             
         return dias_estimados
         
@@ -1422,6 +1425,62 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
             c.save()
             showinfo("PDF guardado", "Ya puedes ver el ticket de compra.\nSe guardó en tu escritorio.")
     
+    
+    
+# ---------- Sesión de administrador -----------
+class InicioAdmin:
+    def ventana_inicio_admin(self, id_admin, username):
+        self.id_admin = id_admin
+        self.username = username
+        nombre = self.obtener_nombre_admin()
+        
+        inicio_admin = Toplevel() 
+        inicio_admin.title(f"Sesión de administrador - {self.username}")
+        inicio_admin.geometry("890x300")
+        inicio_admin.resizable(False, False)
+        inicio_admin.config(bg="gray22")
+        inicio_admin.iconbitmap(icono) 
+        
+        # label bienvenida
+        label_bienvenida = Label(inicio_admin, text=f"Hola, {nombre}", bg="gray22", fg="white", font=("Century Gothic", 22))
+        label_bienvenida.pack(side='top', pady=15)
+        
+        # añadir administradores, proveedores y clientes
+        boton_anadir = Button(inicio_admin, image=imagen_anadir, text="Añadir", compound="top", bg='gray22', border=0, cursor="hand2", fg="white", font=("Century Gothic", 16))
+        boton_anadir.place(x=30, y=100)
+
+        boton_anadir.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
+        boton_anadir.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        # editar administradores y proveedores
+        boton_editar = Button(inicio_admin, image=imagen_editar, text="Editar", compound="top", bg='gray22', border=0, cursor="hand2", fg="white", font=("Century Gothic", 16))
+        boton_editar.place(x=230, y=100)
+        
+        boton_editar.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
+        boton_editar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        # añadir stock
+        boton_stock = Button(inicio_admin, image=imagen_stock, text="Añadir stock", compound="top", bg='gray22', border=0, cursor="hand2", fg="white", font=("Century Gothic", 16))
+        boton_stock.place(x=430, y=100)
+        
+        boton_stock.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
+        boton_stock.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        # ver gráficos de estadísticas
+        boton_graficos = Button(inicio_admin, image=imagen_graficos, text="Gráficos y estadísticas", compound="top", bg='gray22', border=0, cursor="hand2", fg="white",
+                                font=("Century Gothic", 16))
+        boton_graficos.place(x=630, y=100)
+        
+        boton_graficos.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
+        boton_graficos.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+    
+    def obtener_nombre_admin(self):
+        tabla = coneccion.cursor()
+        tabla.execute("SELECT nombre FROM usuarios WHERE id_usuario = ?", (self.id_admin, ))
+        nombre_admin = tabla.fetchone()[0]
+        return nombre_admin
+    
                              
 # widgets login
 ruta_fondo = "imagenes/leBron-dunk.jpg"
@@ -1485,6 +1544,23 @@ imagen_proyecto = ImageTk.PhotoImage(imagen_proyecto)
 ruta_envio = "botones/envio.png"
 imagen_envio = Image.open(ruta_envio)
 imagen_envio = ImageTk.PhotoImage(imagen_envio)
+
+
+ruta_anadir = "botones/anadir1.png"
+imagen_anadir = Image.open(ruta_anadir)
+imagen_anadir = ImageTk.PhotoImage(imagen_anadir)
+
+ruta_editar = "botones/editar2.png"
+imagen_editar = Image.open(ruta_editar)
+imagen_editar = ImageTk.PhotoImage(imagen_editar)
+
+ruta_stock = "botones/en-stock.png"
+imagen_stock = Image.open(ruta_stock)
+imagen_stock = ImageTk.PhotoImage(imagen_stock)
+
+ruta_graficos = "botones/graficos.png"
+imagen_graficos = Image.open(ruta_graficos)
+imagen_graficos = ImageTk.PhotoImage(imagen_graficos)
  
 
 # instancias
@@ -1495,6 +1571,7 @@ editar_cliente = EditarCliente()
 editar_direccion_cliente = EditarDireccionCliente()
 terminos = TerminosCondiciones()
 confirmar_compra = Comprar()
+inicio_admin = InicioAdmin()
 
 # botón ingresar
 ingresar = Login()
