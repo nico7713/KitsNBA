@@ -1446,7 +1446,8 @@ class InicioAdmin:
         label_bienvenida.pack(side='top', pady=15)
         
         # añadir administradores, proveedores y clientes
-        boton_anadir = Button(inicio_admin, image=imagen_anadir, text="Añadir", compound="top", bg='gray22', border=0, cursor="hand2", fg="white", font=("Century Gothic", 16))
+        boton_anadir = Button(inicio_admin, image=imagen_anadir, text="Añadir", compound="top", bg='gray22', border=0, cursor="hand2", fg="white", font=("Century Gothic", 16),
+                              command=add.interfaz_anadir)
         boton_anadir.place(x=30, y=100)
 
         boton_anadir.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
@@ -1481,6 +1482,100 @@ class InicioAdmin:
         nombre_admin = tabla.fetchone()[0]
         return nombre_admin
     
+    
+class Anadir:
+    def interfaz_anadir(self):
+        anadir = Toplevel()
+        anadir.title("Añadir")
+        anadir.geometry("620x300")
+        anadir.resizable(False, False)
+        anadir.config(bg="gray22")
+        anadir.iconbitmap(icono)
+        
+        label_anadir = Label(anadir, text=f"Añadir", bg="gray22", fg="white", font=("Century Gothic", 18))
+        label_anadir.pack(side='top', pady=10)
+        
+        # añadir cliente
+        boton_anadir_cliente = Button(anadir, image=imagen_anadir_cliente, bg='gray22', border=0, cursor="hand2",
+                                      text="Añadir cliente", fg='white', font=("Century Gothic", 12), compound="top", command=lambda : self.interfaz_anadir_informacion(admin=False))
+        boton_anadir_cliente.place(x=30, y=100)
+
+        boton_anadir_cliente.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightbackground="blue"))
+        boton_anadir_cliente.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        # añadir proveedor
+        boton_anadir_proveedor = Button(anadir, image=imagen_anadir_proveedor, bg='gray22', border=0, cursor="hand2",
+                                      text="Añadir proveedor", fg='white', font=("Century Gothic", 12), compound="top")
+        boton_anadir_proveedor.place(x=230, y=100)
+
+        boton_anadir_proveedor.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightbackground="blue"))
+        boton_anadir_proveedor.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        # añadir admin
+        boton_anadir_admin = Button(anadir, image=imagen_anadir_admin, bg='gray22', border=0, cursor="hand2",
+                                      text="Añadir administrador", fg='white', font=("Century Gothic", 12), compound="top", command=lambda : self.interfaz_anadir_informacion(admin=True)) 
+        boton_anadir_admin.place(x=430, y=100)
+        
+        boton_anadir_admin.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightbackground="blue"))
+        boton_anadir_admin.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+    def interfaz_anadir_informacion(self, admin=True):    # si admin es true, la interfaz registra un administrador, si es false, registra un cliente
+        fondo = 'gray22'
+        letra = 'white'
+        fuente = ("Century Gothic", 12)
+        
+        anadir_informacion = Toplevel()
+        anadir_informacion.title("Añadir usuario")
+        anadir_informacion.geometry("620x300")
+        anadir_informacion.resizable(False, False)
+        anadir_informacion.config(bg="gray22", pady=10)
+        anadir_informacion.iconbitmap(icono)
+        
+        label_titulo = Label(anadir_informacion, text="Añadir usuario", bg=fondo, fg=letra, font=("Century Gothic", 14))
+        label_titulo.grid(row=0, column=0, pady=10, columnspan=3)
+
+        label_nombre = Label(anadir_informacion, text="Nombre:", bg=fondo, fg=letra, font=fuente)
+        label_nombre.grid(row=1, column=0, sticky='w')
+
+        entry_nombre = Entry(anadir_informacion, width=20, font=fuente)
+        entry_nombre.grid(row=2, column=0, pady=10, padx=8)
+
+        label_apellido = Label(anadir_informacion, text="Apellido:", bg=fondo, fg=letra, font=fuente)
+        label_apellido.grid(row=3, column=0, sticky='w')
+
+        entry_apellido = Entry(anadir_informacion, width=20, font=fuente)
+        entry_apellido.grid(row=4, column=0, pady=10, padx=8)
+
+        label_tel = Label(anadir_informacion, text="Número de teléfono:", bg=fondo, fg=letra, font=fuente)
+        label_tel.grid(row=1, column=1, sticky='w', padx=20)
+
+        entry_tel = Entry(anadir_informacion, width=20, font=fuente)
+        entry_tel.grid(row=2, column=1, pady=10, sticky='w', padx=20)
+        
+        label_email = Label(anadir_informacion, text="Email:", bg=fondo, fg=letra, font=fuente)
+        label_email.grid(row=3, column=1, sticky='w', padx=20)
+
+        entry_email = Entry(anadir_informacion, width=20, font=fuente)
+        entry_email.grid(row=4, column=1, pady=10, sticky='w', padx=20)
+        
+        label_username = Label(anadir_informacion, text="Nombre de usuario:", bg=fondo, fg=letra, font=fuente)
+        label_username.grid(row=1, column=2, sticky='w', padx=1)
+
+        entry_username = Entry(anadir_informacion, width=20, font=fuente)
+        entry_username.grid(row=2, column=2, pady=10, sticky='w', padx=1)
+        
+        label_clave = Label(anadir_informacion, text="Contraseña:", bg=fondo, fg=letra, font=fuente)
+        label_clave.grid(row=3, column=2, sticky='w', padx=1)
+
+        entry_clave = Entry(anadir_informacion, width=20, font=fuente, show='*')
+        entry_clave.grid(row=4, column=2, pady=10, sticky='w', padx=1)
+        
+        if admin:
+            boton_ir = Button(anadir_informacion, text="Añadir administrador", bg=fondo, fg=letra, font=fuente, cursor="hand2")
+        else:
+            boton_ir = Button(anadir_informacion, text="Continuar", bg=fondo, fg=letra, font=fuente, cursor="hand2")
+            
+        boton_ir.grid(row=5, column=1, pady=15) 
+        boton_ir.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
+        boton_ir.bind("<Leave>", lambda e: e.widget.config(bg=fondo, highlightthickness=0))
                              
 # widgets login
 ruta_fondo = "imagenes/leBron-dunk.jpg"
@@ -1561,7 +1656,18 @@ imagen_stock = ImageTk.PhotoImage(imagen_stock)
 ruta_graficos = "botones/graficos.png"
 imagen_graficos = Image.open(ruta_graficos)
 imagen_graficos = ImageTk.PhotoImage(imagen_graficos)
- 
+
+ruta_anadir_cliente = "botones/agregar-cliente.png"
+imagen_anadir_cliente = Image.open(ruta_anadir_cliente)
+imagen_anadir_cliente = ImageTk.PhotoImage(imagen_anadir_cliente)
+
+ruta_anadir_proveedor = "botones/agregar-proveedor.png"
+imagen_anadir_proveedor = Image.open(ruta_anadir_proveedor)
+imagen_anadir_proveedor = ImageTk.PhotoImage(imagen_anadir_proveedor)
+
+ruta_anadir_admin = "botones/agregar-admin.png"
+imagen_anadir_admin = Image.open(ruta_anadir_admin)
+imagen_anadir_admin = ImageTk.PhotoImage(imagen_anadir_admin)
 
 # instancias
 inicio_cliente = InicioCliente()
@@ -1572,7 +1678,8 @@ editar_direccion_cliente = EditarDireccionCliente()
 terminos = TerminosCondiciones()
 confirmar_compra = Comprar()
 inicio_admin = InicioAdmin()
-
+add = Anadir()
+add.interfaz_anadir_informacion(False)
 # botón ingresar
 ingresar = Login()
 boton_ingresar = Button(ventana_login, text="Ingresar", width=8, cursor="hand2", command=ingresar.login)
