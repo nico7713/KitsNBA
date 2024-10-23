@@ -481,7 +481,7 @@ class EditarCliente:
                     showwarning("Advertencia", f"Error al actualizar la información del usuario.\n{e}")
                     return
                 except sqlite3.IntegrityError:  # validar que el nombre de usuario no exista ya en la base de datos
-                    showwarning("Advertencia", f"El nombre de usuario '{nuevo_username}' ya existe.\nPor favor elije otro.")
+                    showwarning("Advertencia", f"El nombre de usuario '{nuevo_username}' ya existe.\nPor favor elige otro.")
                     return
                 except Exception as e2:
                     showwarning("Advertencia", f"Ocurrió un error desconocido al modificar la información de usuario.\n{e2}") 
@@ -1585,7 +1585,8 @@ class Anadir:
         self.entry_clave.grid(row=4, column=2, pady=10, sticky='w', padx=1)
         
         if admin:   # Administrador
-            boton_ir = Button(anadir_informacion, text="Añadir administrador", bg=fondo, fg=letra, font=fuente, cursor="hand2")
+            boton_ir = Button(anadir_informacion, text="Añadir administrador", bg=fondo, fg=letra, font=fuente, cursor="hand2",
+                              command=lambda : self.anadir_admin(anadir_informacion))
             boton_ir.grid(row=5, column=1, pady=15)
             
         elif proveedor: # Proveedor
@@ -1618,27 +1619,126 @@ class Anadir:
               
     
     def comprobar_campos(self, proveedor=False):
-        nombre = self.entry_nombre.get()
-        email = self.entry_email.get()
-        telefono = self.entry_tel.get()
+        self.nombre = self.entry_nombre.get()
+        self.email = self.entry_email.get()
+        self.telefono = self.entry_tel.get()
         
         if not proveedor:
-            apellido = self.entry_apellido.get()
-            username = self.entry_username.get()
-            clave = self.entry_clave.get()
+            self.apellido = self.entry_apellido.get()
+            self.username = self.entry_username.get()
+            self.clave = self.entry_clave.get()
             
-            if not (nombre and email and telefono and apellido and username and clave):
+            if not (self.nombre and self.email and self.telefono and self.apellido and self.username and self.clave):
+                showwarning("Advertencia", "Por favor, completa todos los campos.")
+                return False
+            if len(self.clave) < 6:
+                showwarning("Advertencia", "La clave de usuario debe contener al menos 6 caracteres.")
+                return False
+            
+        else:    
+            self.nombre_contacto = self.entry_nombre_contacto.get()
+            if not (self.nombre and self.email and self.telefono and self.nombre_contacto):
                 showwarning("Advertencia", "Por favor, completa todos los campos.")
                 return False
             
-
+        if not self.telefono.isnumeric():
+            showwarning("Advertencia", "Por favor, utiliza un número de teléfono válido.\nLos números deben ir sin espacios.")
+            return False
             
-        else:    
-            nombre_contacto = self.entry_nombre_contacto.get()
+        return True
+        
+        
+    def comprobar_direccion(self, proveedor=False):
+        self.provincia = self.combo_provincia.get()
+        self.localidad = self.entry_localidad.get()
+        self.direccion = self.entry_direccion.get()
+        
+        if not proveedor:
+            self.codigo_postal = self.entry_codigo_postal.get()
+            if not (self.provincia and self.localidad and self.direccion and self.codigo_postal):
+                showwarning("Advertencia", "Por favor completa los campos de ubicación.") 
+                return False
             
+        else:
+            if not (self.provincia and self.localidad and self.direccion):
+                showwarning("Advertencia", "Por favor completa los campos de ubicación.") 
+                return False           
+            
+        return True
+    
+    
+    def anadir_cliente(self, ventana_primaria):
+        if not self.comprobar_direccion(proveedor=False):
+            return
+        
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("INSERT INTO usuarios (nombre, apellido, num_telefono, email, username, password, tipo_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)", self.datos_cliente)
+            id_usuario = tabla.lastrowid    # lastrowid devuelve la clave primaria del último registro insertado
+            direccion = (id_usuario, self.provincia, self.localidad, self.direccion, self.codigo_postal)
+            tabla.execute("INSERT INTO ubicacion (id_usuario, provincia, localidad, direccion, codigo_postal) VALUES (?, ?, ?, ?, ?)", direccion)
+            id_ubicacion = tabla.lastrowid
+            tabla.execute("UPDATE usuarios SET id_ubicacion = ? WHERE id_usuario = ?", (id_ubicacion, id_usuario))
+            coneccion.commit()
+            showinfo("Cliente registrado", f"Registraste al cliente {self.nombre} {self.apellido} correctamente.")
+            ventana_primaria.destroy()
+        except sqlite3.OperationalError as e:
+            coneccion.rollback()
+            showwarning("Advertencia", f"Error al registrar cliente.\n{e}")
+            return
+        except sqlite3.IntegrityError:  # validar que el nombre de usuario no exista ya en la base de datos
+            coneccion.rollback()
+            showwarning("Advertencia", f"El nombre de usuario '{self.username}' ya existe.\nPor favor elige otro.")
+            ventana_primaria.deiconify()
+            return
+        except Exception as e2:
+            coneccion.rollback()
+            showwarning("Advertencia", f"Ocurrió un error desconocido al registrar cliente.\n{e2}")
+            
+    
+    def anadir_proveedor(self, ventana_primaria):
+        if not self.comprobar_direccion(proveedor=True):
+            return
+                          # desempaquetar la tupla con la informacion del proveedor
+        datos_proveedor = (*self.datos_proveedor, self.provincia, self.localidad, self.direccion)
+        
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("INSERT INTO proveedores (nombre_proveedor, num_telefono, email, nombre_de_contacto, provincia, localidad, direccion) VALUES (?, ?, ?, ?, ?, ?, ?)", datos_proveedor)
+            coneccion.commit()
+            showinfo("Proveedor registrado", f"Registraste al proveedor '{datos_proveedor[0]}' correctamente.")
+            ventana_primaria.destroy()
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error al registrar proveedor.\n{e}")
+            return
+        except Exception as e2:
+            showwarning("Advertencia", f"Ocurrió un error desconocido al registrar proveedor.\n{e2}")
+    
+    
+    def anadir_admin(self, ventana_primaria):
+        if not self.comprobar_campos(proveedor=False):
+            return
+        
+        datos_admin = (self.nombre, self.apellido, self.telefono, self.email, self.username, self.clave, "admin")
+        
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("INSERT INTO usuarios (nombre, apellido, num_telefono, email, username, password, tipo_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)", datos_admin)
+            coneccion.commit()
+            showinfo("Administrador registrado", f"Registraste al administrador '{self.nombre}' correctamente.")
+            ventana_primaria.destroy()
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error al registrar administrador.\n{e}")
+            return
+        except Exception as e2:
+            showwarning("Advertencia", f"Ocurrió un error desconocido al registrar nuevo administrador.\n{e2}")
+        
         
     
-    def interfaz_anadir_direccion(self, ventana_primaria, proveedor=False):
+    def interfaz_anadir_direccion(self, ventana_primaria, proveedor=False): # si proveedor es False, la interfaz va a ser para añadir un cliente
+        if not self.comprobar_campos(proveedor):
+            return  
+        
         fondo = 'gray22'
         letra = 'white'
         fuente = ("Century Gothic", 12)
@@ -1659,39 +1759,49 @@ class Anadir:
         anadir_direccion.config(bg="gray22", pady=10)
         anadir_direccion.iconbitmap(icono)    
         
+        ventana_primaria.withdraw()
+        
         label_titulo = Label(anadir_direccion, text="Dirección del cliente", bg=fondo, fg=letra, font=("Century Gothic", 14))
         label_titulo.pack(pady=10)
         
         label_provincia = Label(anadir_direccion, text="Provincia:", bg=fondo, fg=letra, font=fuente)
         label_provincia.pack()
 
-        combo_provincia = ttk.Combobox(anadir_direccion, width=20, font=fuente, values=provincias)
-        combo_provincia.pack()
+        self.combo_provincia = ttk.Combobox(anadir_direccion, width=20, font=fuente, values=provincias, state='readonly')
+        self.combo_provincia.pack()
 
         label_localidad = Label(anadir_direccion, text="Localidad:", bg=fondo, fg=letra, font=fuente)
         label_localidad.pack()
 
-        entry_localidad = Entry(anadir_direccion, width=20, font=fuente)
-        entry_localidad.pack()
+        self.entry_localidad = Entry(anadir_direccion, width=20, font=fuente)
+        self.entry_localidad.pack()
 
         label_direccion = Label(anadir_direccion, text="Dirección:", bg=fondo, fg=letra, font=fuente)
         label_direccion.pack()
 
-        entry_direccion = Entry(anadir_direccion, width=20, font=fuente)
-        entry_direccion.pack()
+        self.entry_direccion = Entry(anadir_direccion, width=20, font=fuente)
+        self.entry_direccion.pack()
         
         if not proveedor:
+            self.datos_cliente = (self.nombre, self.apellido, self.telefono, self.email, self.username, self.clave, "cliente")
+            
             anadir_direccion.geometry("400x350")
             
             label_codigo_postal = Label(anadir_direccion, text="Código postal:", bg=fondo, fg=letra, font=fuente)
             label_codigo_postal.pack()
 
-            entry_codigo_postal = Entry(anadir_direccion, width=20, font=fuente)
-            entry_codigo_postal.pack()
+            self.entry_codigo_postal = Entry(anadir_direccion, width=20, font=fuente)
+            self.entry_codigo_postal.pack()
             
-        boton_guardar = Button(anadir_direccion, text="Guardar", bg=fondo, fg=letra, font=fuente, cursor="hand2")
-        boton_guardar.pack(pady=15)
+            boton_guardar = Button(anadir_direccion, text="Registrar cliente", bg=fondo, fg=letra, font=fuente, cursor="hand2", 
+                                   command=lambda : self.anadir_cliente(anadir_direccion))
+        else:
+            self.datos_proveedor = (self.nombre, self.telefono, self.email, self.nombre_contacto)
+            boton_guardar = Button(anadir_direccion, text="Registrar proveedor", bg=fondo, fg=letra, font=fuente, cursor="hand2",
+                                   command=lambda : self.anadir_proveedor(anadir_direccion))
         
+        
+        boton_guardar.pack(pady=15)
         boton_guardar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
         boton_guardar.bind("<Leave>", lambda e: e.widget.config(bg=fondo, highlightthickness=0))
                    
