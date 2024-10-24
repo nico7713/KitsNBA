@@ -1449,7 +1449,8 @@ class InicioAdmin:
         boton_anadir.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
         # editar administradores y proveedores
-        boton_editar = Button(inicio_admin, image=imagen_editar, text="Editar", compound="top", bg='gray22', border=0, cursor="hand2", fg="white", font=("Century Gothic", 16))
+        boton_editar = Button(inicio_admin, image=imagen_editar, text="Editar", compound="top", bg='gray22', border=0, cursor="hand2", fg="white", font=("Century Gothic", 16),
+                              command=lambda : edit.interfaz_editar(inicio_admin))
         boton_editar.place(x=230, y=100)
         
         boton_editar.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
@@ -1545,8 +1546,8 @@ class Anadir:
         anadir_informacion.config(bg="gray22", pady=10)
         anadir_informacion.iconbitmap(icono)
         
-        label_titulo = Label(anadir_informacion, text="Añadir usuario", bg=fondo, fg=letra, font=("Century Gothic", 14))
-        label_titulo.grid(row=0, column=0, pady=10, columnspan=3)
+        self.label_titulo = Label(anadir_informacion, text="Añadir usuario", bg=fondo, fg=letra, font=("Century Gothic", 14))
+        self.label_titulo.grid(row=0, column=0, pady=10, columnspan=3)
         
         label_nombre = Label(anadir_informacion, text="Nombre:", bg=fondo, fg=letra, font=fuente)
         label_nombre.grid(row=1, column=0, sticky='w')
@@ -1585,16 +1586,16 @@ class Anadir:
         self.entry_clave.grid(row=4, column=2, pady=10, sticky='w', padx=1)
         
         if admin:   # Administrador
-            boton_ir = Button(anadir_informacion, text="Añadir administrador", bg=fondo, fg=letra, font=fuente, cursor="hand2",
+            self.boton_ir = Button(anadir_informacion, text="Añadir administrador", bg=fondo, fg=letra, font=fuente, cursor="hand2",
                               command=lambda : self.anadir_admin(anadir_informacion))
-            boton_ir.grid(row=5, column=1, pady=15)
+            self.boton_ir.grid(row=5, column=1, pady=15)
             
         elif proveedor: # Proveedor
-            boton_ir = Button(anadir_informacion, text="Añadir proveedor", bg=fondo, fg=letra, font=fuente, cursor="hand2",
+            self.boton_ir = Button(anadir_informacion, text="Añadir proveedor", bg=fondo, fg=letra, font=fuente, cursor="hand2",
                               command=lambda : self.interfaz_anadir_direccion(anadir_informacion, proveedor=True))
-            boton_ir.grid(row=5, column=0, pady=15, columnspan=2)
-            label_titulo.config(text="Añadir proveedor")
-            label_titulo.grid(row=0, column=0, columnspan=2)
+            self.boton_ir.grid(row=5, column=0, pady=15, columnspan=2)
+            self.label_titulo.config(text="Añadir proveedor")
+            self.label_titulo.grid(row=0, column=0, columnspan=2)
             anadir_informacion.geometry("420x290")
             label_apellido.destroy()
             self.entry_apellido.destroy()
@@ -1610,12 +1611,12 @@ class Anadir:
             self.entry_nombre_contacto.grid(row=4, column=0, pady=10, padx=8)
             
         else:  # Cliente
-            boton_ir = Button(anadir_informacion, text="Continuar", bg=fondo, fg=letra, font=fuente, cursor="hand2",
+            self.boton_ir = Button(anadir_informacion, text="Continuar", bg=fondo, fg=letra, font=fuente, cursor="hand2",
                               command=lambda : self.interfaz_anadir_direccion(anadir_informacion, proveedor=False))
-            boton_ir.grid(row=5, column=1, pady=15)
+            self.boton_ir.grid(row=5, column=1, pady=15)
             
-        boton_ir.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
-        boton_ir.bind("<Leave>", lambda e: e.widget.config(bg=fondo, highlightthickness=0))
+        self.boton_ir.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
+        self.boton_ir.bind("<Leave>", lambda e: e.widget.config(bg=fondo, highlightthickness=0))
               
     
     def comprobar_campos(self, proveedor=False):
@@ -1804,7 +1805,160 @@ class Anadir:
         boton_guardar.pack(pady=15)
         boton_guardar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
         boton_guardar.bind("<Leave>", lambda e: e.widget.config(bg=fondo, highlightthickness=0))
-                   
+             
+             
+             
+class Editar(Anadir):
+    def interfaz_editar(self, ventana_primaria):
+        x_pos = 500
+        y_pos = 250
+        
+        for widget in ventana_primaria.winfo_children():
+            if type(widget) is Toplevel:
+                x_pos= widget.winfo_x()
+                y_pos= widget.winfo_y()
+                widget.destroy()
+                
+        editar = Toplevel(ventana_primaria)
+        editar.title("Editar")
+        editar.geometry(f"620x280+{x_pos}+{y_pos}")
+        editar.resizable(False, False)
+        editar.config(bg="gray22")
+        editar.iconbitmap(icono)
+        
+        label_editar = Label(editar, text=f"Editar", bg="gray22", fg="white", font=("Century Gothic", 18))
+        label_editar.place(x=255, y=15)
+        
+        # editar admin
+        boton_editar_admin = Button(editar, image=imagen_editar_admin, bg='gray22', border=0, cursor="hand2",
+                                      text="Editar administrador", fg='white', font=("Century Gothic", 12), compound="top", command=lambda : self.interfaz_mostrar_cargados(editar))
+        boton_editar_admin.place(x=230, y=80)
+
+        boton_editar_admin.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightbackground="blue"))
+        boton_editar_admin.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        # editar proveedor
+        boton_editar_proveedor = Button(editar, image=imagen_editar_proveedor, bg='gray22', border=0, cursor="hand2",
+                                      text="Editar proveedor", fg='white', font=("Century Gothic", 12), compound="top",
+                                      command=lambda : self.interfaz_mostrar_cargados(editar, admin=False))
+        boton_editar_proveedor.place(x=30, y=80)
+
+        boton_editar_proveedor.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightbackground="blue"))
+        boton_editar_proveedor.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        # editar producto
+        boton_editar_producto = Button(editar, image=imagen_editar_producto, bg='gray22', border=0, cursor="hand2",
+                                      text="Editar producto", fg='white', font=("Century Gothic", 12), compound="top") 
+        boton_editar_producto.place(x=430, y=80)
+        
+        boton_editar_producto.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightbackground="blue"))
+        boton_editar_producto.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+    
+    def interfaz_mostrar_cargados(self, ventana_primaria, admin=True):
+        x_pos = 500
+        y_pos = 200
+        
+        for widget in ventana_primaria.winfo_children():
+            if type(widget) is Toplevel:
+                x_pos= widget.winfo_x()
+                y_pos= widget.winfo_y()
+                widget.destroy()
+        
+        mostrar_cargados = Toplevel(ventana_primaria)
+        mostrar_cargados.title("Registrados")
+        mostrar_cargados.geometry(f"350x150+{x_pos}+{y_pos}")
+        mostrar_cargados.resizable(False, False)
+        mostrar_cargados.config(bg="gray22")
+        mostrar_cargados.iconbitmap(icono)
+          
+        label_mostrar = Label(mostrar_cargados, text="Administradores registrados", bg="gray22", fg='white', font=("Century Gothic", 12))
+        label_mostrar.pack(pady=10)
+        
+        registrados = self.obtener_registrados(admin) 
+        
+        combo_administradores = ttk.Combobox(mostrar_cargados, font=("Calibri", 12), values=registrados, state='readonly')
+        combo_administradores.pack()
+        
+        boton_modificar = Button(mostrar_cargados, text="Modificar", bg="gray22", fg="white", font=("Century Gothic", 12), cursor="hand2",
+                                 command=lambda : self.interfaz_editar_admin(combo_administradores.get(), mostrar_cargados))
+        boton_modificar.pack(pady=15)
+        
+        boton_modificar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
+        boton_modificar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        if not admin:
+            label_mostrar.config(text="Proveedores registrados")
+            boton_modificar.config(command=lambda : self.interfaz_editar_proveedor(mostrar_cargados))
+            
+    def obtener_registrados(self, admin=True):
+        try:
+            tabla = coneccion.cursor()
+            if admin:
+                tabla.execute('SELECT username FROM usuarios WHERE tipo_usuario = "admin"')
+            else:
+                tabla.execute('SELECT nombre_proveedor FROM proveedores')
+                
+            tuplas_registrados = tabla.fetchall()
+            registrados = []
+                
+            for registrado in tuplas_registrados:
+                registrados.append(registrado[0])
+                
+            return registrados 
+        
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error en la base de datos al cargar administradores.\n{e}")
+        except Exception as e2:
+            showwarning("Advertencia", f"Error desconocido al cargar administradores.\n{e2}")
+        
+    def interfaz_editar_admin(self, username_admin, ventana_primaria):
+        if not username_admin:
+            showwarning("Advertencia", "Selecciona un administrador para modificar.")
+            return
+        
+        ventana_primaria.withdraw()
+        super().interfaz_anadir_informacion(ventana_primaria, admin=True, proveedor=False)
+        self.label_titulo.config(text="Editar información de administrador")
+        self.boton_ir.config(command=lambda : self.editar_admin(ventana_primaria))
+        
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("SELECT nombre, apellido, num_telefono, email, username, password FROM usuarios WHERE username = ?", (username_admin, )) 
+            datos_admin = tabla.fetchall()
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error en la base de datos al cargar administradores.\n{e}")
+        except Exception as e2:
+            showwarning("Advertencia", f"Error desconocido al cargar administradores.\n{e2}")
+            
+        self.entry_nombre.insert(0, datos_admin[0][0])
+        self.entry_apellido.insert(0, datos_admin[0][1])
+        self.entry_tel.insert(0, datos_admin[0][2])
+        self.entry_email.insert(0, datos_admin[0][3])
+        self.entry_username.insert(0, datos_admin[0][4])
+        self.entry_clave.insert(0, datos_admin[0][5])
+        
+         
+    def editar_admin(self, ventana_primaria):
+        if super().comprobar_campos(proveedor=False):
+            datos_actualizar = (self.nombre, self.apellido, self.telefono, self.email, self.username, self.clave, self.username)
+            try:
+                tabla = coneccion.cursor()
+                tabla.execute("UPDATE usuarios SET nombre = ?, apellido = ?, num_telefono = ?, email = ?, username = ?, password = ? WHERE username = ?", datos_actualizar)
+                coneccion.commit()
+                showinfo("Información actualizada", "La información del usuario se actualizó correctamente.") 
+                ventana_primaria.destroy()
+            except sqlite3.OperationalError as e:
+                showwarning("Advertencia", f"Error en la base de datos al cargar administradores.\n{e}")
+            except sqlite3.IntegrityError:
+                showwarning("Advertencia", f"El nombre de usuario elegido ya existe.\nPor favor elige otro.")
+            except Exception as e2:
+                showwarning("Advertencia", f"Error desconocido al cargar administradores.\n{e2}")
+        else:
+            showwarning("Advertencia", f"Completa todos los campos.")
+        
+    def interfaz_editar_proveedor(self, ventana_primaria):
+        super().interfaz_anadir_informacion(ventana_primaria, admin=False, proveedor=True) 
+        
+            
 # widgets login
 ruta_fondo = "imagenes/leBron-dunk.jpg"
 imagen_fondo = Image.open(ruta_fondo)
@@ -1904,6 +2058,18 @@ ruta_anadir_admin = "botones/agregar-admin.png"
 imagen_anadir_admin = Image.open(ruta_anadir_admin)
 imagen_anadir_admin = ImageTk.PhotoImage(imagen_anadir_admin)
 
+ruta_editar_admin = "botones/editar-admin.png"
+imagen_editar_admin = Image.open(ruta_editar_admin)
+imagen_editar_admin = ImageTk.PhotoImage(imagen_editar_admin)
+
+ruta_editar_proveedor = "botones/editar-proveedor.png"
+imagen_editar_proveedor = Image.open(ruta_editar_proveedor)
+imagen_editar_proveedor = ImageTk.PhotoImage(imagen_editar_proveedor)
+
+ruta_editar_producto = "botones/editar-producto2.png"
+imagen_editar_producto = Image.open(ruta_editar_producto)
+imagen_editar_producto = ImageTk.PhotoImage(imagen_editar_producto)
+
 # instancias
 inicio_cliente = InicioCliente()
 cargar_camisetas = CargarCamisetas()
@@ -1914,6 +2080,7 @@ terminos = TerminosCondiciones()
 confirmar_compra = Comprar()
 inicio_admin = InicioAdmin()
 add = Anadir()
+edit = Editar()
 
 # botón ingresar
 ingresar = Login()
