@@ -1794,17 +1794,18 @@ class Anadir:
             self.entry_codigo_postal = Entry(anadir_direccion, width=20, font=fuente)
             self.entry_codigo_postal.pack()
             
-            boton_guardar = Button(anadir_direccion, text="Registrar cliente", bg=fondo, fg=letra, font=fuente, cursor="hand2", 
+            self.boton_guardar = Button(anadir_direccion, text="Registrar cliente", bg=fondo, fg=letra, font=fuente, cursor="hand2", 
                                    command=lambda : self.anadir_cliente(anadir_direccion))
         else:
+            label_titulo.config(text="Dirección del proveedor") 
             self.datos_proveedor = (self.nombre, self.telefono, self.email, self.nombre_contacto)
-            boton_guardar = Button(anadir_direccion, text="Registrar proveedor", bg=fondo, fg=letra, font=fuente, cursor="hand2",
+            self.boton_guardar = Button(anadir_direccion, text="Registrar proveedor", bg=fondo, fg=letra, font=fuente, cursor="hand2",
                                    command=lambda : self.anadir_proveedor(anadir_direccion))
         
         
-        boton_guardar.pack(pady=15)
-        boton_guardar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
-        boton_guardar.bind("<Leave>", lambda e: e.widget.config(bg=fondo, highlightthickness=0))
+        self.boton_guardar.pack(pady=15)
+        self.boton_guardar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
+        self.boton_guardar.bind("<Leave>", lambda e: e.widget.config(bg=fondo, highlightthickness=0))
              
              
              
@@ -1827,7 +1828,7 @@ class Editar(Anadir):
         editar.iconbitmap(icono)
         
         label_editar = Label(editar, text=f"Editar", bg="gray22", fg="white", font=("Century Gothic", 18))
-        label_editar.place(x=255, y=15)
+        label_editar.place(x=270, y=15)
         
         # editar admin
         boton_editar_admin = Button(editar, image=imagen_editar_admin, bg='gray22', border=0, cursor="hand2",
@@ -1846,13 +1847,14 @@ class Editar(Anadir):
         boton_editar_proveedor.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         # editar producto
         boton_editar_producto = Button(editar, image=imagen_editar_producto, bg='gray22', border=0, cursor="hand2",
-                                      text="Editar producto", fg='white', font=("Century Gothic", 12), compound="top") 
-        boton_editar_producto.place(x=430, y=80)
+                                      text="Editar producto", fg='white', font=("Century Gothic", 12), compound="top",
+                                      command=lambda : self.interfaz_mostrar_productos(editar))  
+        boton_editar_producto.place(x=460, y=80)
         
         boton_editar_producto.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightbackground="blue"))
         boton_editar_producto.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
-    
+    # Interfaz para mostrar los administradores o proveedores registrados en la base de datos
     def interfaz_mostrar_cargados(self, ventana_primaria, admin=True):
         x_pos = 500
         y_pos = 200
@@ -1875,11 +1877,11 @@ class Editar(Anadir):
         
         registrados = self.obtener_registrados(admin) 
         
-        combo_administradores = ttk.Combobox(mostrar_cargados, font=("Calibri", 12), values=registrados, state='readonly')
-        combo_administradores.pack()
+        combo_registrados = ttk.Combobox(mostrar_cargados, font=("Calibri", 12), values=registrados, state='readonly')
+        combo_registrados.pack()
         
         boton_modificar = Button(mostrar_cargados, text="Modificar", bg="gray22", fg="white", font=("Century Gothic", 12), cursor="hand2",
-                                 command=lambda : self.interfaz_editar_admin(combo_administradores.get(), mostrar_cargados))
+                                 command=lambda : self.interfaz_editar_admin(combo_registrados.get(), mostrar_cargados))
         boton_modificar.pack(pady=15)
         
         boton_modificar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
@@ -1887,8 +1889,9 @@ class Editar(Anadir):
         
         if not admin:
             label_mostrar.config(text="Proveedores registrados")
-            boton_modificar.config(command=lambda : self.interfaz_editar_proveedor(mostrar_cargados))
-            
+            boton_modificar.config(command=lambda : self.interfaz_editar_proveedor(combo_registrados.get(), mostrar_cargados))
+    
+    # Obtener los administradores o proveedores registrados       
     def obtener_registrados(self, admin=True):
         try:
             tabla = coneccion.cursor()
@@ -1909,17 +1912,19 @@ class Editar(Anadir):
             showwarning("Advertencia", f"Error en la base de datos al cargar administradores.\n{e}")
         except Exception as e2:
             showwarning("Advertencia", f"Error desconocido al cargar administradores.\n{e2}")
-        
+    
+    # Interfaz para modificar la información de los administradores
     def interfaz_editar_admin(self, username_admin, ventana_primaria):
         if not username_admin:
             showwarning("Advertencia", "Selecciona un administrador para modificar.")
             return
         
         ventana_primaria.withdraw()
-        super().interfaz_anadir_informacion(ventana_primaria, admin=True, proveedor=False)
+        super().interfaz_anadir_informacion(ventana_primaria, admin=True, proveedor=False)  # Reutilizar la ventana de la clase Anadir con herencia
         self.label_titulo.config(text="Editar información de administrador")
         self.boton_ir.config(command=lambda : self.editar_admin(ventana_primaria))
         
+        # Buscar información cargada en la base de datos
         try:
             tabla = coneccion.cursor()
             tabla.execute("SELECT nombre, apellido, num_telefono, email, username, password FROM usuarios WHERE username = ?", (username_admin, )) 
@@ -1929,6 +1934,7 @@ class Editar(Anadir):
         except Exception as e2:
             showwarning("Advertencia", f"Error desconocido al cargar administradores.\n{e2}")
             
+        # Llenar los campos de texto con la información cargada en la base de datos    
         self.entry_nombre.insert(0, datos_admin[0][0])
         self.entry_apellido.insert(0, datos_admin[0][1])
         self.entry_tel.insert(0, datos_admin[0][2])
@@ -1936,7 +1942,7 @@ class Editar(Anadir):
         self.entry_username.insert(0, datos_admin[0][4])
         self.entry_clave.insert(0, datos_admin[0][5])
         
-         
+    # lógica para editar la información de administradores     
     def editar_admin(self, ventana_primaria):
         if super().comprobar_campos(proveedor=False):
             datos_actualizar = (self.nombre, self.apellido, self.telefono, self.email, self.username, self.clave, self.username)
@@ -1955,9 +1961,298 @@ class Editar(Anadir):
         else:
             showwarning("Advertencia", f"Completa todos los campos.")
         
-    def interfaz_editar_proveedor(self, ventana_primaria):
-        super().interfaz_anadir_informacion(ventana_primaria, admin=False, proveedor=True) 
+    # Interfaz para editar la información principal del proveedor
+    def interfaz_editar_proveedor(self, nombre_proveedor, ventana_primaria):
+        if not nombre_proveedor:
+            showwarning("Advertencia", "Selecciona un proveedor.")
+            return 
+
+        ventana_primaria.withdraw()
+        super().interfaz_anadir_informacion(ventana_primaria, admin=False, proveedor=True)
+        self.label_titulo.config(text="Editar información de proveedor")
+        self.boton_ir.config(command=lambda : self.mostrar_ventana_direccion(nombre_proveedor, ventana_primaria))
         
+        # Buscar información cargada del proveedor en la base de datos
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("SELECT nombre_proveedor, num_telefono, email, nombre_de_contacto FROM proveedores WHERE nombre_proveedor = ?", (nombre_proveedor, )) 
+            datos_proveedor = tabla.fetchall()
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error en la base de datos al cargar la información del proveedor.\n{e}")
+        except Exception as e2:
+            showwarning("Advertencia", f"Error desconocido al cargar la información del proveedor.\n{e2}")
+
+        # Colocar la información en los entry
+        self.entry_nombre.insert(0, datos_proveedor[0][0])
+        self.entry_tel.insert(0, datos_proveedor[0][1])
+        self.entry_email.insert(0, datos_proveedor[0][2])
+        self.entry_nombre_contacto.insert(0, datos_proveedor[0][3]) 
+        
+    # Abrir la ventana para editar la dirección del proveedor si los campos de su información principal están todos completos
+    def mostrar_ventana_direccion(self, nombre_proveedor, ventana_primaria):
+        if self.comprobar_campos(proveedor=True):
+            self.interfaz_anadir_direccion(ventana_primaria, proveedor=True)
+            self.boton_guardar.config(command=lambda : self.editar_proveedor(ventana_primaria))
+            
+            # Buscar información de ubicación del proveedor en la base de datos
+            try:
+                tabla = coneccion.cursor()
+                tabla.execute("SELECT provincia, localidad, direccion FROM proveedores WHERE nombre_proveedor = ?", (nombre_proveedor, )) 
+                direccion_proveedor = tabla.fetchall()
+                
+            except sqlite3.OperationalError as e:
+                showwarning("Advertencia", f"Error en la base de datos al cargar la información del proveedor.\n{e}")
+            except Exception as e2:
+                showwarning("Advertencia", f"Error desconocido al cargar la información del proveedor.\n{e2}")
+            
+            # insertar dirección actual del proveedor
+            self.combo_provincia.config(state='normal')
+            self.combo_provincia.insert(0, direccion_proveedor[0][0])
+            self.combo_provincia.config(state='readonly')
+            self.entry_localidad.insert(0, direccion_proveedor[0][1]) 
+            self.entry_direccion.insert(0, direccion_proveedor[0][2]) 
+            
+        else:
+            showwarning("Advertencia", "Completa todos los campos.")
+         
+    # lógica para editar la información del proveedor
+    def editar_proveedor(self, ventana_primaria):
+        if self.comprobar_direccion(proveedor=True):
+            datos_proveedor = (*self.datos_proveedor, self.provincia, self.localidad, self.direccion, self.datos_proveedor[0])
+            try:
+                tabla = coneccion.cursor()
+                tabla.execute("UPDATE proveedores SET nombre_proveedor = ?, num_telefono = ? , email = ?, nombre_de_contacto = ?, provincia = ?, localidad = ?, direccion = ? WHERE nombre_proveedor = ?", datos_proveedor)
+                coneccion.commit()
+                showinfo("Información actualizada", "La información del proveedor se actualizó correctamente.") 
+                ventana_primaria.destroy()
+            except sqlite3.OperationalError as e:
+                showwarning("Advertencia", f"Error en la base de datos al modificar proveedor.\n{e}")
+            except Exception as e2:
+                showwarning("Advertencia", f"Error desconocido al modificar proveedor.\n{e2}")
+                
+    
+    # ------- modificar productos -------
+    
+    def obtener_informacion_productos(self, ordenar_id=False):
+    # crear un diccionario con el id de clave y la descripción de valor
+        try:
+            tabla = coneccion.cursor()
+            if not ordenar_id:
+                tabla.execute("SELECT id_producto, nombre_producto, jugador, color FROM productos ORDER BY nombre_producto ASC")
+            else:
+                tabla.execute("SELECT id_producto, nombre_producto, jugador, color FROM productos ORDER BY id_producto ASC")
+         
+            datos_camiseta = tabla.fetchall()
+            
+            camisetas = {}
+            
+            for camiseta in datos_camiseta:
+                descripcion = f"{camiseta[0]} - {camiseta[1]} {camiseta[2]} {camiseta[3]}"
+                camisetas.update({camiseta[0]: descripcion}) 
+                
+            return camisetas
+                    
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error al cargar información de productos.\n{e}")
+        except Exception as e2:
+            showwarning("Advertencia", f"Error desconocido al cargar información de productos.\n{e2}")
+            
+            
+    def interfaz_mostrar_productos(self, ventana_primaria):
+        x_pos = 500
+        y_pos = 200
+        
+        for widget in ventana_primaria.winfo_children():
+            if type(widget) is Toplevel:
+                x_pos= widget.winfo_x()
+                y_pos= widget.winfo_y()
+                widget.destroy()
+        
+        mostrar_productos = Toplevel(ventana_primaria)
+        mostrar_productos.title("Productos registrados")
+        mostrar_productos.geometry(f"+{x_pos}+{y_pos}")
+        mostrar_productos.resizable(False, False)
+        mostrar_productos.config(bg="gray22")
+        mostrar_productos.iconbitmap(icono)
+          
+        label_mostrar = Label(mostrar_productos, text="Productos registrados", bg="gray22", fg='white', font=("Century Gothic", 12))
+        label_mostrar.pack(pady=10)
+        
+        self.camisetas = self.obtener_informacion_productos(ordenar_id=True)
+        
+        self.combo_descripciones = ttk.Combobox(mostrar_productos, font=("Calibri", 12), width=55, values=list(self.camisetas.values()), justify='center')
+        self.combo_descripciones.insert(0, list(self.camisetas.values())[0])
+        self.combo_descripciones.config(state="readonly")
+        self.combo_descripciones.pack(pady=10)
+        
+        
+        boton_modificar = Button(mostrar_productos, text="Modificar", bg="gray22", fg="white", font=("Century Gothic", 12), cursor="hand2",
+                                 command=lambda : self.interfaz_editar_producto(mostrar_productos, self.combo_descripciones.get()))
+        boton_modificar.pack(pady=15)
+        
+        boton_modificar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
+        boton_modificar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        label_ordenar = Label(mostrar_productos, text="Ordenar por:", bg="gray22", fg='white', font=("Century Gothic", 12))
+        label_ordenar.pack(pady=10)
+        
+        self.ordenes = ["Orden alfábetico", "ID camiseta"]
+        
+        combo_ordenar = ttk.Combobox(mostrar_productos, font=("Calibri", 12), width=25, values=self.ordenes, justify='center',)
+        combo_ordenar.insert(0, self.ordenes[1])
+        combo_ordenar.config(state="readonly")
+        combo_ordenar.pack(pady=10)
+        
+        boton_ordenar = Button(mostrar_productos, text="Ordenar", bg="gray22", fg="white", font=("Century Gothic", 12), cursor="hand2",
+                               command=lambda : self.ordenar_camisetas(combo_ordenar.get()))
+        boton_ordenar.pack(pady=15)
+        
+        boton_ordenar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
+        boton_ordenar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        
+    def ordenar_camisetas(self, orden):
+        if orden == self.ordenes[0]:
+            self.camisetas = self.obtener_informacion_productos(ordenar_id=False)
+        elif orden == self.ordenes[1]: 
+            self.camisetas = self.obtener_informacion_productos(ordenar_id=True)
+            
+        self.combo_descripciones.config(values=list(self.camisetas.values()))
+        
+    def validar_producto(self, descripcion_producto):
+        if not descripcion_producto:
+            showwarning("Advertencia", "Selecciona un producto.")
+            return
+        
+        if descripcion_producto in self.camisetas.values():
+            id_producto = 0
+           
+            for id in self.camisetas:
+               if self.camisetas[id] == descripcion_producto:
+                   id_producto = id
+                   
+            if not id_producto:
+                showwarning("Advertencia", "Producto no encontrado.")
+                return
+                   
+            try:
+                tabla = coneccion.cursor()
+                consulta = '''
+                    SELECT id_producto, nombre_producto, precio, nombre_proveedor, marca, equipo, temporada, jugador, version, color, descripcion FROM productos c
+                    JOIN proveedores p
+                    ON c.id_proveedor = p.id_proveedor
+                    WHERE id_producto = ? 
+                '''
+                tabla.execute(consulta, (id_producto, ))
+                datos_camiseta = tabla.fetchall()
+                return datos_camiseta
+            except sqlite3.OperationalError as e:
+                showwarning("Advertencia", f"Error al cargar información de productos.\n{e}")
+            except Exception as e2:
+                showwarning("Advertencia", f"Error desconocido al cargar información de productos.\n{e2}")
+
+        else:
+            showwarning("Advertencia", "El producto no se encuentra en la lista de camisetas.")
+            return
+        
+    
+    def interfaz_editar_producto(self, ventana_primaria, descripcion_producto):
+        x_pos = 550
+        y_pos = 250
+        
+        for widget in ventana_primaria.winfo_children():
+            if type(widget) is Toplevel:
+                x_pos= widget.winfo_x()
+                y_pos= widget.winfo_y()
+                widget.destroy()
+        
+        ventana_primaria.withdraw()
+        editar_producto = Toplevel(ventana_primaria)
+        editar_producto.title("Productos registrados")
+        editar_producto.geometry(f"+{x_pos}+{y_pos}")
+        editar_producto.resizable(False, False)
+        editar_producto.config(bg="gray22")
+        editar_producto.iconbitmap(icono)
+        
+        datos_camiseta = self.validar_producto(descripcion_producto)[0]
+        id, producto, precio, proveedor, marca, equipo, temporada, jugador, version, color, descripcion = datos_camiseta
+        
+        
+        consulta_sql = f"SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE id_producto = ?"
+        parametro_sql = (id, )
+        imagen_camiseta = cargar_camisetas.cargar_camisetas(consulta_sql, parametro_sql)[0][0] # guardar la imagen de la camiseta contenida en la lista de tuplas
+    
+        label_imagen = Label(editar_producto, image=imagen_camiseta)
+        label_imagen.grid(row=0, column=0, padx=10, pady=10)
+        
+        boton_modificar = Button(editar_producto, text="Modificar", bg="gray22", fg="white", font=("Century Gothic", 12), cursor="hand2",
+                                 command=lambda : self.editar_producto(id, ventana_primaria))
+        boton_modificar.grid(row=1, column=0, padx=10, pady=10, sticky='n') 
+        
+        boton_modificar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
+        boton_modificar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        frame_informacion = Frame(editar_producto, bg="gray22") 
+        frame_informacion.grid(row=0, column=1, padx=50, sticky='n') 
+        
+        label_precio = Label(frame_informacion, text="Precio", bg="gray22", fg='white', font=("Century Gothic", 12))
+        label_precio.grid(row=0, column=0, sticky='w', padx=50)
+        
+        self.entry_precio = Entry(frame_informacion, width=20, font=("Century Gothic", 12))
+        self.entry_precio.insert(0, precio)
+        self.entry_precio.grid(row=1, column=0, sticky='w', padx=50, pady=5) 
+
+        label_informacion = Label(frame_informacion, text="Información del producto", bg="gray22", fg='white', font=("Century Gothic", 12))
+        label_informacion.grid(row=2, column=0, sticky='w', padx=50)
+
+        listbox_informacion = Listbox(frame_informacion, bg="gray22", fg="white", font=("Century Gothic", 12), width=50) 
+        listbox_informacion.grid(row=3, column=0, sticky='w', padx=50, pady=10)
+        
+        listbox_informacion.insert(0, f"Producto: {producto}") 
+        listbox_informacion.insert(1, f"Distribuido por: {proveedor}")
+        listbox_informacion.insert(2, f"Marca: {marca}")
+        listbox_informacion.insert(3, f"Versión: {version}")
+        listbox_informacion.insert(4, f"Equipo: {equipo}")
+        listbox_informacion.insert(5, f"Temporada: {temporada}")
+        listbox_informacion.insert(6, f"Jugador: {jugador}")
+        listbox_informacion.insert(7, f"Color: {color}")
+        
+        listbox_informacion.config(state="disabled")
+        
+        label_descripcion = Label(frame_informacion, text="Descripción del producto", bg="gray22", fg='white', font=("Century Gothic", 12))
+        label_descripcion.grid(row=4, column=0, sticky='w', padx=50)
+        
+        self.area_descripcion = Text(frame_informacion, bg="gray22", fg="white", font=("Century Gothic", 12), width=50, height=10, wrap='word') 
+        self.area_descripcion.grid(row=5, column=0, sticky='w', padx=50) 
+        self.area_descripcion.insert("1.0", descripcion)
+        
+    def editar_producto(self, id_producto, ventana_primaria):
+        precio = self.entry_precio.get()
+        descripcion = self.area_descripcion.get("1.0", "end-1c")
+        
+        if not (precio and descripcion):
+            showwarning("Advertencia", "Debes establecer un precio y una descripción.")
+            return
+        
+        try:
+            precio = float(precio)
+        except ValueError:
+            showwarning("Advertencia", "Escribe un precio válido.")
+            return
+        
+        confirmar = askyesno("Modificar producto", "¿Estás seguro que deseas modificar este producto?")
+        if confirmar:
+            try:
+                datos_actualizar = (precio, descripcion, id_producto)
+                tabla = coneccion.cursor()
+                tabla.execute("UPDATE productos SET precio = ?, descripcion = ? WHERE id_producto = ?", datos_actualizar)
+                coneccion.commit()
+                showinfo("Producto modificado", f"Modificaste el producto correctamente.\nEl nuevo precio es: ${precio}")
+                ventana_primaria.destroy()
+            except sqlite3.OperationalError as e:
+                showwarning("Advertencia", f"Error en la base de datos al modificar producto.\n{e}")
+            except Exception as e2:
+                showwarning("Advertencia", f"Error desconocido al modificar producto.\n{e2}")
             
 # widgets login
 ruta_fondo = "imagenes/leBron-dunk.jpg"
@@ -2081,7 +2376,7 @@ confirmar_compra = Comprar()
 inicio_admin = InicioAdmin()
 add = Anadir()
 edit = Editar()
-
+edit.interfaz_mostrar_productos(ventana_login)
 # botón ingresar
 ingresar = Login()
 boton_ingresar = Button(ventana_login, text="Ingresar", width=8, cursor="hand2", command=ingresar.login)
