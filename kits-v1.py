@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter.messagebox import *
-import tkinter.simpledialog
+from tkinter import simpledialog
 from PIL import Image, ImageTk
 import sqlite3
 import os
@@ -806,7 +806,10 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             showwarning("Advertencia", f"Error al cargar la información de talles\n{e}") 
                  
         def cantidades_talles(stock):
-            return [""] + [i for i in range(1, stock + 1)]
+            if stock > 5:   # si el stock es mayor a 5, limitar la compra a 5 camisetas por talle
+                return ["", 1, 2, 3, 4, 5]
+            else:
+                return [""] + [i for i in range(1, stock + 1)]
                  
         # listas con la cantidad de camisetas que el usuario puede seleccionar en base al stock actual
         cantidad_xs = cantidades_talles(xs)
@@ -1520,14 +1523,7 @@ class InicioAdmin:
         
 class Anadir:
     def interfaz_anadir(self, ventana_primaria):
-        x_pos = 400
-        y_pos = 200
-        
-        for widget in ventana_primaria.winfo_children():    # verificar que no existan ventanas anteriores como esta para evitar acumular muchas en la pantalla
-            if type(widget) is Toplevel:
-                x_pos = widget.winfo_x()    # obtener la posicion de la ventana antes de eliminarla para asignarsela a la nueva
-                y_pos = widget.winfo_y()
-                widget.destroy()
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria, 400, 200)
         
         anadir = Toplevel(ventana_primaria)
         anadir.title("Añadir")
@@ -1569,21 +1565,16 @@ class Anadir:
         letra = 'white'
         fuente = ("Century Gothic", 12)
         
-        x_pos = 400
-        y_pos = 200
+        x_pos, y_pos = bloquear_ventanas_duplicadas(interfaz_primaria, 400, 200)
         
-        for widget in interfaz_primaria.winfo_children():
-            if type(widget) is Toplevel:
-                x_pos = widget.winfo_x()
-                y_pos = widget.winfo_y()
-                widget.destroy()
-        
+        interfaz_primaria.withdraw()
         anadir_informacion = Toplevel(interfaz_primaria)
         anadir_informacion.title("Añadir usuario")
         anadir_informacion.geometry(f"620x300+{x_pos}+{y_pos}")
         anadir_informacion.resizable(False, False)
         anadir_informacion.config(bg="gray22", pady=10)
         anadir_informacion.iconbitmap(icono)
+        anadir_informacion.protocol("WM_DELETE_WINDOW", lambda : cerrar(anadir_informacion, interfaz_primaria))
         
         # widgets 
         self.label_titulo = Label(anadir_informacion, text="Añadir usuario", bg=fondo, fg=letra, font=("Century Gothic", 14))
@@ -1628,7 +1619,7 @@ class Anadir:
         # configurar widgets dependiendo de si se está introduciendo información de un administrador, proveedor o cliente
         if admin:   # Administrador
             self.boton_ir = Button(anadir_informacion, text="Añadir administrador", bg=fondo, fg=letra, font=fuente, cursor="hand2",
-                              command=lambda : self.anadir_admin(anadir_informacion))
+                              command=lambda : self.anadir_admin(anadir_informacion, interfaz_primaria))
             self.boton_ir.grid(row=5, column=1, pady=15)
             
         elif proveedor: # Proveedor
@@ -1763,7 +1754,7 @@ class Anadir:
             showwarning("Advertencia", f"Ocurrió un error desconocido al registrar proveedor.\n{e2}")
     
     # lógica para añadir un administrador
-    def anadir_admin(self, ventana_primaria):
+    def anadir_admin(self, ventana_primaria, ventana_anterior):
         if not self.comprobar_campos(proveedor=False):
             return
         
@@ -1774,7 +1765,7 @@ class Anadir:
             tabla.execute("INSERT INTO usuarios (nombre, apellido, num_telefono, email, username, password, tipo_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)", datos_admin)
             coneccion.commit()
             showinfo("Administrador registrado", f"Registraste al administrador '{self.nombre}' correctamente.")
-            ventana_primaria.destroy()
+            cerrar(ventana_primaria, ventana_anterior)
         except sqlite3.OperationalError as e:
             showwarning("Advertencia", f"Error al registrar administrador.\n{e}")
             return
@@ -1791,14 +1782,7 @@ class Anadir:
         letra = 'white'
         fuente = ("Century Gothic", 12)
          
-        x_pos = 600
-        y_pos = 400
-        
-        for widget in ventana_primaria.winfo_children():
-            if type(widget) is Toplevel:
-                x_pos = widget.winfo_x()
-                y_pos = widget.winfo_y()
-                widget.destroy()
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria, 600, 400)
           
         # ventana y widgets
         ventana_primaria.withdraw()
@@ -1809,13 +1793,8 @@ class Anadir:
         anadir_direccion.resizable(False, False)
         anadir_direccion.config(bg="gray22", pady=10)
         anadir_direccion.iconbitmap(icono) 
-        
-        def cerrar():
-            anadir_direccion.destroy()
-            ventana_primaria.deiconify()
-           
-        anadir_direccion.protocol("WM_DELETE_WINDOW", cerrar)
-        
+        anadir_direccion.protocol("WM_DELETE_WINDOW", lambda : cerrar(anadir_direccion, ventana_primaria))
+       
         
         label_titulo = Label(anadir_direccion, text="Dirección del cliente", bg=fondo, fg=letra, font=("Century Gothic", 14))
         label_titulo.pack(pady=10)
@@ -1867,14 +1846,7 @@ class Anadir:
                            
 class Editar(Anadir):   # heredar de la clase Anadir
     def interfaz_editar(self, ventana_primaria):
-        x_pos = 500
-        y_pos = 250
-        
-        for widget in ventana_primaria.winfo_children():
-            if type(widget) is Toplevel:
-                x_pos= widget.winfo_x()
-                y_pos= widget.winfo_y()
-                widget.destroy()
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria, 500, 250)
                 
         editar = Toplevel(ventana_primaria)
         editar.title("Editar")
@@ -1912,28 +1884,23 @@ class Editar(Anadir):   # heredar de la clase Anadir
         
     # Interfaz para mostrar los administradores o proveedores registrados en la base de datos
     def interfaz_mostrar_cargados(self, ventana_primaria, admin=True):
-        x_pos = 500
-        y_pos = 200
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria, 500, 200) 
         
-        for widget in ventana_primaria.winfo_children():
-            if type(widget) is Toplevel:
-                x_pos= widget.winfo_x()
-                y_pos= widget.winfo_y()
-                widget.destroy()
-        
+        # ventana y widgets
+        ventana_primaria.withdraw()
         mostrar_cargados = Toplevel(ventana_primaria)
         mostrar_cargados.title("Registrados")
-        mostrar_cargados.geometry(f"350x150+{x_pos}+{y_pos}")
+        mostrar_cargados.geometry(f"350x250+{x_pos}+{y_pos}")
         mostrar_cargados.resizable(False, False)
         mostrar_cargados.config(bg="gray22")
         mostrar_cargados.iconbitmap(icono)
+        mostrar_cargados.protocol("WM_DELETE_WINDOW", lambda : cerrar(mostrar_cargados, ventana_primaria))
           
         label_mostrar = Label(mostrar_cargados, text="Administradores registrados", bg="gray22", fg='white', font=("Century Gothic", 12))
         label_mostrar.pack(pady=10)
         
-        registrados = self.obtener_registrados(admin) 
-        
-        combo_registrados = ttk.Combobox(mostrar_cargados, font=("Calibri", 12), values=registrados, state='readonly')
+        registrados = self.obtener_registrados(admin)
+        combo_registrados = ttk.Combobox(mostrar_cargados, font=("Calibri", 12), values=registrados ,state='readonly')
         combo_registrados.pack()
         
         boton_modificar = Button(mostrar_cargados, text="Modificar", bg="gray22", fg="white", font=("Century Gothic", 12), cursor="hand2",
@@ -1943,9 +1910,54 @@ class Editar(Anadir):   # heredar de la clase Anadir
         boton_modificar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
         boton_modificar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
+        boton_eliminar = Button(mostrar_cargados, text="Eliminar", bg="gray22", fg="white", font=("Century Gothic", 12), cursor="hand2",
+                                command=lambda : self.eliminar_admin(combo_registrados.get(), mostrar_cargados))
+        boton_eliminar.pack(pady=15)
+        
+        boton_eliminar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
+        boton_eliminar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
         if not admin:
             label_mostrar.config(text="Proveedores registrados")
             boton_modificar.config(command=lambda : self.interfaz_editar_proveedor(combo_registrados.get(), mostrar_cargados))
+            boton_eliminar.config(command=self.eliminar_proveedor)
+            
+    # Eliminar proveedor por ID
+    def eliminar_proveedor(self):
+        id_proveedor = simpledialog.askinteger("Eliminar proveedor", "Ingresa el ID del proveedor que deseas eliminar")
+        if id_proveedor:
+            confirmar = askyesno("Eliminar proveedor", "¿Estás seguro que deseas eliminar este proveedor?")
+            if confirmar:
+                try:
+                    tabla = coneccion.cursor()
+                    tabla.execute("DELETE FROM proveedores WHERE id_proveedor = ?", (id_proveedor, ))
+                    coneccion.commit()
+                    showinfo("Proveedor eliminado", f"El proveedor con el ID {id_proveedor} ha sido eliminado.")
+                except sqlite3.IntegrityError:
+                    showwarning("Advertencia", "El stock contiene productos de este proveedor.\nNo se puede eliminar.")
+                except sqlite3.OperationalError as e:
+                    showwarning("Advertencia", f"Error en la base de datos al eliminar proveedor.{e}")
+                except Exception as e2:
+                    showwarning("Advertencia", "Error desconocido al eliminar proveedor.")
+
+    # Eliminar administrador por username
+    def eliminar_admin(self, username, ventana):
+        if not username:
+            showwarning("Advertencia", "Selecciona un administrador.")
+            return
+        confirmar = askyesno("Confirmar", "¿Estás seguro que deseas eliminar a este usuario?")
+        if confirmar:
+            try:
+                tabla = coneccion.cursor()
+                tabla.execute("DELETE FROM usuarios WHERE username = ?", (username, ))
+                coneccion.commit()
+                showinfo("Administrador eliminado", f"Eliminaste al administrador {username}")
+                ventana.destroy()
+            except sqlite3.OperationalError as e:
+                showwarning("Advertencia", f"Error en la base de datos al eliminar administrador.\n{e}")
+            except Exception as e2:
+                showwarning("Advertencia", f"Error desconocido al eliminar administrador.\n{e2}")
+        
     
     # Obtener los administradores o proveedores registrados       
     def obtener_registrados(self, admin=True):
@@ -1954,7 +1966,7 @@ class Editar(Anadir):   # heredar de la clase Anadir
             if admin:
                 tabla.execute('SELECT username FROM usuarios WHERE tipo_usuario = "admin"')
             else:
-                tabla.execute('SELECT nombre_proveedor FROM proveedores')
+                tabla.execute('SELECT nombre_proveedor FROM proveedores') 
                 
             tuplas_registrados = tabla.fetchall()
             registrados = []
@@ -1968,7 +1980,8 @@ class Editar(Anadir):   # heredar de la clase Anadir
             showwarning("Advertencia", f"Error en la base de datos al cargar administradores.\n{e}")
         except Exception as e2:
             showwarning("Advertencia", f"Error desconocido al cargar administradores.\n{e2}")
-    
+        
+            
     # Interfaz para modificar la información de los administradores
     def interfaz_editar_admin(self, username_admin, ventana_primaria):
         if not username_admin:
@@ -2115,22 +2128,16 @@ class Editar(Anadir):   # heredar de la clase Anadir
             
     # interafaz para mostrar los productos cargados en la base de datos        
     def interfaz_mostrar_productos(self, ventana_primaria):
-        x_pos = 500
-        y_pos = 200
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria, 500, 200)
         
-        for widget in ventana_primaria.winfo_children():
-            if type(widget) is Toplevel:
-                x_pos= widget.winfo_x()
-                y_pos= widget.winfo_y()
-                widget.destroy()
-        
+        ventana_primaria.withdraw()
         mostrar_productos = Toplevel(ventana_primaria)
         mostrar_productos.title("Productos registrados")
         mostrar_productos.geometry(f"+{x_pos}+{y_pos}")
         mostrar_productos.resizable(False, False)
         mostrar_productos.config(bg="gray22")
         mostrar_productos.iconbitmap(icono)
-        mostrar_productos.protocol("WM_DELETE_WINDOW", lambda : self.cerrar(mostrar_productos, ventana_primaria))
+        mostrar_productos.protocol("WM_DELETE_WINDOW", lambda : cerrar(mostrar_productos, ventana_primaria))
           
         label_mostrar = Label(mostrar_productos, text="Productos registrados", bg="gray22", fg='white', font=("Century Gothic", 12))
         label_mostrar.pack(pady=10)
@@ -2173,12 +2180,7 @@ class Editar(Anadir):   # heredar de la clase Anadir
         
         self.boton_ordenar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightbackground="blue"))
         self.boton_ordenar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
-        
-    # método para cerrar la ventana actual y abrir la anterior a esta
-    def cerrar(self, ventana_actual, ventana_primaria):
-        ventana_primaria.deiconify()
-        ventana_actual.destroy()
-    
+          
     # lógica para ordenar el combobox de los productos    
     def ordenar_camisetas(self, orden):
         if orden == self.ordenes[0]:
@@ -2227,14 +2229,7 @@ class Editar(Anadir):   # heredar de la clase Anadir
         
     # interfaz para editar el precio y descripción del producto
     def interfaz_editar_producto(self, ventana_primaria, descripcion_producto):
-        x_pos = 550
-        y_pos = 250
-        
-        for widget in ventana_primaria.winfo_children():
-            if type(widget) is Toplevel:
-                x_pos= widget.winfo_x()
-                y_pos= widget.winfo_y()
-                widget.destroy()
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria)
         
         # crear ventana
         ventana_primaria.withdraw()
@@ -2244,12 +2239,7 @@ class Editar(Anadir):   # heredar de la clase Anadir
         self.i_editar_producto.resizable(False, False)
         self.i_editar_producto.config(bg="gray22")
         self.i_editar_producto.iconbitmap(icono)
-        
-        def cerrar():
-            self.i_editar_producto.destroy()
-            ventana_primaria.deiconify()
-        
-        self.i_editar_producto.protocol("WM_DELETE_WINDOW", cerrar)
+        self.i_editar_producto.protocol("WM_DELETE_WINDOW", lambda : cerrar(self.i_editar_producto, ventana_primaria))
         
         # guardar los datos que retorna el método validar_producto
         datos_camiseta = self.validar_producto(descripcion_producto)[0]
@@ -2339,14 +2329,7 @@ class Editar(Anadir):   # heredar de la clase Anadir
 
 class AnadirStock(Editar):  # heredar de la clase Editar
     def interfaz_mostrar_proveedores(self, ventana_primaria, id_admin):
-        x_pos = 550
-        y_pos = 250
-        
-        for widget in ventana_primaria.winfo_children():
-            if type(widget) is Toplevel:
-                x_pos = widget.winfo_x()
-                y_pos = widget.winfo_y()
-                widget.destroy()
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria)
             
         self.id_admin = id_admin    # obtener el id del administrador en la sesión actual
         
@@ -2459,7 +2442,8 @@ class AnadirStock(Editar):  # heredar de la clase Editar
         ventana_primaria.withdraw()
         # heredar de la interfaz para editar productos
         self.interfaz_editar_producto(ventana_primaria, descripcion_producto)
-          
+        
+        
         # modificar los widgets de esta interfaz heredada
         self.area_descripcion.destroy()
         self.label_descripcion.destroy()
@@ -2511,6 +2495,38 @@ class AnadirStock(Editar):  # heredar de la clase Editar
         self.combo_xxl = ttk.Combobox(self.frame_talles, width=1, font=("Century Gothic", 14), state='readonly', values=cantidades)    
         self.combo_xxl.grid(row=1, column=5, padx=5, pady=10, sticky='w') 
         
+        stock_actual = self.obtener_stock_actual() # obtener stock actual del producto
+        
+        
+        # mostrar stock actual
+        frame_stock_actual = Frame(self.i_editar_producto, bg="gray22")
+        frame_stock_actual.place(x=720, y=350)
+        
+        label_stock_actual = Label(frame_stock_actual, text="Stock actual", bg='gray22', fg='green', font=("Century Gothic", 12))
+        label_stock_actual.grid(row=0, column=0, sticky='w', columnspan=3)   
+        
+        label_stock_xs = Label(frame_stock_actual, text=f"XS: {stock_actual[0]}   ", bg='gray22', fg='white', font=("Century Gothic", 12))
+        label_stock_xs.grid(row=1, column=0, sticky='w')  
+        
+        label_stock_s = Label(frame_stock_actual, text=f"S: {stock_actual[1]}   ", bg='gray22', fg='white', font=("Century Gothic", 12))
+        label_stock_s.grid(row=2, column=0, sticky='w')  
+        
+        label_stock_m = Label(frame_stock_actual, text=f"M: {stock_actual[2]}   ", bg='gray22', fg='white', font=("Century Gothic", 12))
+        label_stock_m.grid(row=1, column=1, sticky='w')  
+        
+        label_stock_l = Label(frame_stock_actual, text=f"L: {stock_actual[3]}   ", bg='gray22', fg='white', font=("Century Gothic", 12))
+        label_stock_l.grid(row=2, column=1, sticky='w')  
+        
+        label_stock_xl = Label(frame_stock_actual, text=f"XL: {stock_actual[4]}", bg='gray22', fg='white', font=("Century Gothic", 12))
+        label_stock_xl.grid(row=1, column=2, sticky='w')  
+        
+        label_stock_xxl = Label(frame_stock_actual, text=f"XXL: {stock_actual[5]}", bg='gray22', fg='white', font=("Century Gothic", 12))
+        label_stock_xxl.grid(row=2, column=2, sticky='w')  
+        
+        
+        
+       
+        
     # lógica para guardar el pedido en la base de datos, en las tablas compras y stock
     def anadir_talles(self, ventana):
         # validar al menos un talle seleccionado
@@ -2553,6 +2569,22 @@ class AnadirStock(Editar):  # heredar de la clase Editar
             showwarning("Advertencia", "Selecciona al menos un talle.")
             return
             
+            
+    # obtener stock actual
+    def obtener_stock_actual(self):
+        try:
+            tabla = coneccion.cursor()
+            tabla.execute("SELECT stock_talle FROM stock WHERE id_producto = ?", (self.id_producto, ))
+            talles = tabla.fetchall()
+            stock_talles = []
+            for talle in talles:
+                stock_talles.append(talle[0])
+            return stock_talles
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error en la base de datos al cargar stock actual.\n{e}")
+        except Exception as e2:
+            showwarning("Advertencia", f"Error desconocido al cargar stock.\n{e2}")
+            
 
     # obtener precio del producto
     def obtener_precio_producto(self, descripcion_producto):
@@ -2566,6 +2598,31 @@ class AnadirStock(Editar):  # heredar de la clase Editar
             showwarning("Advertencia", f"Error en la base de datos al obtener el ID del producto.\n{e}") 
         except Exception as e2:
             showwarning("Advertencia", f"Error desconocido al obtener el ID del producto.\n{e2}") 
+      
+
+
+class GraficosEstadisticas: # graficos: productos más vendidos, mejores clientes, talles mas vendidos, versiones más vendidas, regiones con más compras
+    def ventana_inicio_graficos(self, ventana_primaria):
+        inicio_graficos = Toplevel(ventana_primaria)
+        inicio_graficos.title("Gráficos y estadísticas")
+        inicio_graficos.geometry("800x250")
+        inicio_graficos.resizable(False, False)
+        inicio_graficos.config(bg="gray22")
+        inicio_graficos.iconbitmap(icono) 
+
+
+def cerrar(ventana_actual, ventana_anterior):
+    ventana_actual.destroy()
+    ventana_anterior.deiconify()
+ 
+def bloquear_ventanas_duplicadas(ventana_primaria, x_pos=550, y_pos=250):    
+    for widget in ventana_primaria.winfo_children():   # verificar que no existan ventanas anteriores como esta para evitar acumular muchas en la pantalla
+        if type(widget) is Toplevel:
+            x_pos = widget.winfo_x()     # obtener la posicion de la ventana antes de eliminarla para asignarsela a la nueva
+            y_pos = widget.winfo_y()
+            widget.destroy()   
+    
+    return x_pos, y_pos
          
 # widgets login
 ruta_fondo = "imagenes/leBron-dunk.jpg"
