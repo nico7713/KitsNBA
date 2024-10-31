@@ -7,6 +7,7 @@ import sqlite3
 import os
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+import matplotlib.pyplot as plt
 
 # ventana de inicio
 icono = "icono-logo.ico"
@@ -776,12 +777,13 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         label_precio.place(x=350, y=460)
         
         # botón de compra
-        boton_compra = Button(frame_descripcion, text="Comprar ahora", width=24, bg="Green", fg="white", font=("Century Gothic", 16), cursor="hand2",
+        color = graficos.obtener_colores([producto])[0]
+        boton_compra = Button(frame_descripcion, text="Comprar ahora", width=24, bg=color, fg="white", font=("Century Gothic", 16), cursor="hand2",
                               command=lambda imagen=imagen_camiseta: confirmar_compra.vista_confirmar_compra(self.ventana_compra, self.id_cliente, id_camiseta, imagen))
         boton_compra.place(x=10, y=460)
         
-        boton_compra.bind("<Enter>", lambda e: e.widget.config(bg="Dark green", highlightbackground="blue"))
-        boton_compra.bind("<Leave>", lambda e: e.widget.config(bg="Green", highlightthickness=0))
+        boton_compra.bind("<Enter>", lambda e: e.widget.config(bg=color, highlightthickness=1))
+        boton_compra.bind("<Leave>", lambda e: e.widget.config(bg=color, highlightthickness=0))
         
         
         # logo aplicación
@@ -888,13 +890,12 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
             if favorito:
                 boton_añadir_favoritos = Button(frame_descripcion, text="Quitar de favoritos", width=24, bg='red', fg="white", font=("Century Gothic", 16), cursor="hand2",
                                                 command=lambda : self.eliminar_favorito(id_camiseta, id_cliente, frame_descripcion))
-                boton_añadir_favoritos.bind("<Enter>", lambda e: e.widget.config(bg="dark red"))
-                boton_añadir_favoritos.bind("<Leave>", lambda e: e.widget.config(bg="red"))
             else:
                 boton_añadir_favoritos = Button(frame_descripcion, text="Añadir a favoritos", width=24, bg='salmon', fg="white", font=("Century Gothic", 16), cursor="hand2",
                                                 command=lambda : self.agregar_favorito(id_camiseta, id_cliente, frame_descripcion))
-                boton_añadir_favoritos.bind("<Enter>", lambda e: e.widget.config(bg="red"))
-                boton_añadir_favoritos.bind("<Leave>", lambda e: e.widget.config(bg="salmon"))
+                
+            boton_añadir_favoritos.bind("<Enter>", lambda e: e.widget.config(highlightthickness=1))
+            boton_añadir_favoritos.bind("<Leave>", lambda e: e.widget.config(highlightthickness=0)) 
                 
             boton_añadir_favoritos.place(x=10, y=510)
         except Exception as e:
@@ -1507,7 +1508,7 @@ class InicioAdmin:
         
         # ver gráficos de estadísticas
         boton_graficos = Button(inicio_admin, image=imagen_graficos, text="Gráficos y estadísticas", compound="top", bg='gray22', border=0, cursor="hand2", fg="white",
-                                font=("Century Gothic", 16))
+                                font=("Century Gothic", 16), command=lambda : graficos.ventana_inicio_graficos(inicio_admin))
         boton_graficos.place(x=630, y=100)
         
         boton_graficos.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=2, highlightbackground="blue"))
@@ -2600,29 +2601,153 @@ class AnadirStock(Editar):  # heredar de la clase Editar
             showwarning("Advertencia", f"Error desconocido al obtener el ID del producto.\n{e2}") 
       
 
-
-class GraficosEstadisticas: # graficos: productos más vendidos, mejores clientes, talles mas vendidos, versiones más vendidas, regiones con más compras
+class GraficosEstadisticas: # graficos: 1- productos más vendidos, 2- mejores clientes, 3- talles populares, 4- versiones más vendidas, 5- estadísticas
     def ventana_inicio_graficos(self, ventana_primaria):
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria) 
+        
         inicio_graficos = Toplevel(ventana_primaria)
         inicio_graficos.title("Gráficos y estadísticas")
-        inicio_graficos.geometry("800x250")
+        inicio_graficos.geometry(f"950x250+{x_pos}+{y_pos}")
         inicio_graficos.resizable(False, False)
         inicio_graficos.config(bg="gray22")
         inicio_graficos.iconbitmap(icono) 
-
-
+        
+        # botones principales
+        boton_grafico_productos = Button(inicio_graficos, image=imagen_grafico_productos, bg="gray22", fg="white", font=("Century Gothic", 11), text="Productos más vendidos",
+                                         compound='top', border=0, command=self.grafico_top_productos)
+        boton_grafico_productos.grid(row=0, column=0, padx=20, pady=50) 
+        
+        boton_grafico_productos.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
+        boton_grafico_productos.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        boton_grafico_clientes = Button(inicio_graficos, image=imagen_grafico_clientes, bg="gray22", fg="white", font=("Century Gothic", 11), text="Mejores clientes",
+                                         compound='top', border=0)
+        boton_grafico_clientes.grid(row=0, column=1, padx=20, pady=50) 
+        
+        boton_grafico_clientes.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
+        boton_grafico_clientes.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        boton_grafico_talles = Button(inicio_graficos, image=imagen_grafico_talles, bg="gray22", fg="white", font=("Century Gothic", 11), text="Talles populares",
+                                         compound='top', border=0)
+        boton_grafico_talles.grid(row=0, column=2, padx=20, pady=50) 
+        
+        boton_grafico_talles.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
+        boton_grafico_talles.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        boton_grafico_versiones = Button(inicio_graficos, image=imagen_grafico_versiones, bg="gray22", fg="white", font=("Century Gothic", 11), text="Versiones populares",
+                                         compound='top', border=0)
+        boton_grafico_versiones.grid(row=0, column=3, padx=20, pady=50) 
+        
+        boton_grafico_versiones.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
+        boton_grafico_versiones.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+        boton_estadisticas = Button(inicio_graficos, image=imagen_estadiscticas, bg="gray22", fg="white", font=("Century Gothic", 11), text="Estadísticas",
+                                         compound='top', border=0)
+        boton_estadisticas.grid(row=0, column=4, padx=20, pady=50) 
+        
+        boton_estadisticas.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
+        boton_estadisticas.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
+        
+    # ------- Graficar los productos más vendidos -------
+    def grafico_top_productos(self):
+        top_productos = self.obtener_top_productos()    # id_producto, nombre_producto, ventas
+        # separar datos en listas distintas para graficar
+        nombres_productos = [f"{producto[1]} (ID: {producto[0]})" for producto in top_productos]
+        ventas_totales = [producto[2] for producto in top_productos]
+        
+        # colores para las barras
+        colores = self.obtener_colores(nombres_productos)
+        
+        # crear grafico de barras verticales
+        plt.figure(figsize=(10, 6))
+        plt.bar(nombres_productos, ventas_totales, color=colores)
+        plt.ylabel("Ventas")
+        plt.xlabel("Producto")
+        plt.title("Top 10 productos más vendidos")
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+        plt.show()
+        
+    def obtener_top_productos(self):
+        try:
+            tabla = coneccion.cursor()  # obtener las camisetas mas vendidas
+            consulta_sql = '''  
+            SELECT v.id_producto, p.nombre_producto, sum(v.cantidad) AS ventas_producto FROM ventas v
+            JOIN productos p
+            ON v.id_producto = p.id_producto
+            GROUP BY v.id_producto
+            ORDER BY ventas_producto DESC 
+            LIMIT 10
+            '''
+            tabla.execute(consulta_sql)
+            informacion_ventas = tabla.fetchall()
+            return informacion_ventas
+        
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error en la base de datos al cargar los productos más vendidos.\n{e}")
+        except Exception as e2:
+            showwarning("Advertencia", f"Error desconocido al cargar los productos más vendidos.\n{e2}")
+            
+    # obtener los colores de cada equipo para el grafico de barras     
+    def obtener_colores(self, nombres_productos):
+        colores_equipos = {
+    "Atlanta Hawks": "#E03A3E",         # Rojo
+    "Boston Celtics": "#007A33",        # Verde
+    "Brooklyn Nets": "#000000",         # Negro
+    "Charlotte Hornets": "#1D1160",     # Morado Oscuro
+    "Chicago Bulls": "#CE1141",         # Rojo
+    "Cleveland Cavaliers": "#6F263D",   # Vino
+    "Dallas Mavericks": "#00538C",      # Azul Oscuro
+    "Denver Nuggets": "#0E2240",        # Azul Profundo
+    "Detroit Pistons": "#C8102E",       # Rojo
+    "Golden State Warriors": "#1D428A", # Azul
+    "Houston Rockets": "#CE1141",       # Rojo
+    "Indiana Pacers": "#002D62",        # Azul Marino
+    "Los Angeles Clippers": "#C8102E",  # Rojo
+    "Los Angeles Lakers": "#552583",    # Púrpura
+    "Memphis Grizzlies": "#12173F",     # Azul Marino
+    "Miami Heat": "#98002E",            # Rojo
+    "Milwaukee Bucks": "#00471B",       # Verde Oscuro
+    "Minnesota Timberwolves": "#0C2340",# Azul Marino
+    "New Orleans Pelicans": "#0C2340",  # Azul Marino
+    "New York Knicks": "#006BB6",       # Azul
+    "Oklahoma City Thunder": "#007AC1", # Azul
+    "Orlando Magic": "#0077C0",         # Azul
+    "Philadelphia 76ers": "#006BB6",    # Azul
+    "Phoenix Suns": "#1D1160",          # Púrpura
+    "Portland Trail Blazers": "#E03A3E",# Rojo
+    "Sacramento Kings": "#5A2D81",      # Púrpura Oscuro
+    "San Antonio Spurs": "#C4CED4",     # Gris Claro
+    "Toronto Raptors": "#CE1141",       # Rojo
+    "Utah Jazz": "#002B5C",             # Azul Marino
+    "Washington Wizards": "#002B5C"     # Azul Marino
+}
+        
+        colores = []
+        
+        for nombre in nombres_productos:
+            for equipo in colores_equipos:
+                if equipo.lower() in nombre.lower():
+                    colores.append(colores_equipos[equipo])
+                    break
+        
+        return colores
+    
+    # -----
+        
 def cerrar(ventana_actual, ventana_anterior):
     ventana_actual.destroy()
     ventana_anterior.deiconify()
  
+# funcion para no mostrar ventanas duplicadas si el usuario intenta abrir varias veces la misma interfaz
 def bloquear_ventanas_duplicadas(ventana_primaria, x_pos=550, y_pos=250):    
-    for widget in ventana_primaria.winfo_children():   # verificar que no existan ventanas anteriores como esta para evitar acumular muchas en la pantalla
-        if type(widget) is Toplevel:
-            x_pos = widget.winfo_x()     # obtener la posicion de la ventana antes de eliminarla para asignarsela a la nueva
+    for widget in ventana_primaria.winfo_children():   
+        if type(widget) is Toplevel:                   # verificar que no existan ventanas anteriores para evitar acumular muchas en la pantalla
+            x_pos = widget.winfo_x()                   # obtener la posicion de la ventana antes de eliminarla para asignarsela a la nueva
             y_pos = widget.winfo_y()
             widget.destroy()   
     
-    return x_pos, y_pos
+    return x_pos, y_pos     # posicion de la ventana eliminada
          
 # widgets login
 ruta_fondo = "imagenes/leBron-dunk.jpg"
@@ -2694,7 +2819,6 @@ ruta_envio = "botones/envio.png"
 imagen_envio = Image.open(ruta_envio)
 imagen_envio = ImageTk.PhotoImage(imagen_envio)
 
-
 ruta_anadir = "botones/anadir1.png"
 imagen_anadir = Image.open(ruta_anadir)
 imagen_anadir = ImageTk.PhotoImage(imagen_anadir)
@@ -2735,6 +2859,26 @@ ruta_editar_producto = "botones/editar-producto2.png"
 imagen_editar_producto = Image.open(ruta_editar_producto)
 imagen_editar_producto = ImageTk.PhotoImage(imagen_editar_producto)
 
+ruta_grafico_productos = "botones/barra-grafica.png"
+imagen_grafico_productos = Image.open(ruta_grafico_productos)
+imagen_grafico_productos = ImageTk.PhotoImage(imagen_grafico_productos)
+
+ruta_grafico_clientes = "botones/grafico-de-barras.png"
+imagen_grafico_clientes = Image.open(ruta_grafico_clientes)
+imagen_grafico_clientes = ImageTk.PhotoImage(imagen_grafico_clientes)
+
+ruta_grafico_talles = "botones/carrito-de-pasteles.png"
+imagen_grafico_talles = Image.open(ruta_grafico_talles)
+imagen_grafico_talles = ImageTk.PhotoImage(imagen_grafico_talles)
+
+ruta_grafico_versiones = "botones/grafico-circular.png"
+imagen_grafico_versiones = Image.open(ruta_grafico_versiones)
+imagen_grafico_versiones = ImageTk.PhotoImage(imagen_grafico_versiones)
+
+ruta_estadisticas = "botones/estadisticas.png"
+imagen_estadiscticas = Image.open(ruta_estadisticas)
+imagen_estadiscticas = ImageTk.PhotoImage(imagen_estadiscticas)
+
 # instancias
 inicio_cliente = InicioCliente()
 cargar_camisetas = CargarCamisetas()
@@ -2747,7 +2891,9 @@ inicio_admin = InicioAdmin()
 add = Anadir()
 edit = Editar()
 add_stock = AnadirStock()
-
+graficos = GraficosEstadisticas()
+graficos.ventana_inicio_graficos(ventana_login)
+#graficos.obtener_top_productos()
 # botón ingresar
 ingresar = Login()
 boton_ingresar = Button(ventana_login, text="Ingresar", width=8, cursor="hand2", command=ingresar.login)
