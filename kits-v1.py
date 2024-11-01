@@ -2621,21 +2621,21 @@ class GraficosEstadisticas: # graficos: 1- productos más vendidos, 2- mejores c
         boton_grafico_productos.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
         boton_grafico_clientes = Button(inicio_graficos, image=imagen_grafico_clientes, bg="gray22", fg="white", font=("Century Gothic", 11), text="Mejores clientes",
-                                         compound='top', border=0)
+                                         compound='top', border=0, command=self.grafico_mejores_clientes)
         boton_grafico_clientes.grid(row=0, column=1, padx=20, pady=50) 
         
         boton_grafico_clientes.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
         boton_grafico_clientes.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
         boton_grafico_talles = Button(inicio_graficos, image=imagen_grafico_talles, bg="gray22", fg="white", font=("Century Gothic", 11), text="Talles populares",
-                                         compound='top', border=0)
+                                         compound='top', border=0, command=self.grafico_talles_vendidos)
         boton_grafico_talles.grid(row=0, column=2, padx=20, pady=50) 
         
         boton_grafico_talles.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
         boton_grafico_talles.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
         boton_grafico_versiones = Button(inicio_graficos, image=imagen_grafico_versiones, bg="gray22", fg="white", font=("Century Gothic", 11), text="Versiones populares",
-                                         compound='top', border=0)
+                                         compound='top', border=0, command=self.grafico_versiones_vendidas)
         boton_grafico_versiones.grid(row=0, column=3, padx=20, pady=50) 
         
         boton_grafico_versiones.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
@@ -2733,8 +2733,110 @@ class GraficosEstadisticas: # graficos: 1- productos más vendidos, 2- mejores c
         
         return colores
     
-    # -----
+# ------- Gráfico de clientes con más compras -------
+    def grafico_mejores_clientes(self):
+        top_clientes = self.obtener_mejores_clientes()
+        clientes = [f"{cliente[1]} (Total invertido: {cliente[2]})" for cliente in top_clientes]
+        compras = [cliente[0] for cliente in top_clientes]
         
+        # Crear gráfico de barras horizontal para el número de compras por cliente
+        plt.figure(figsize=(10, 6))
+        plt.barh(clientes, compras, color="skyblue")
+        plt.xlabel("Camisetas compradas")
+        plt.ylabel("Clientes")
+        plt.title("Top clientes por número de Compras")
+        plt.gca().invert_yaxis()  # Invertir el eje Y para que el cliente con más compras esté arriba
+        plt.tight_layout()
+        plt.show()
+
+
+    def obtener_mejores_clientes(self):
+        try:
+            tabla = coneccion.cursor()  # obtener las compras de clientes, su nombre de usuario y total invertido
+            consulta_sql = '''  
+            SELECT count(v.id_usuario) AS compras_cliente, username, sum(precio_total) as total_invertido FROM ventas v
+            JOIN usuarios u ON v.id_usuario = u.id_usuario
+            GROUP BY v.id_usuario
+            ORDER BY compras_cliente DESC, total_invertido DESC 
+            LIMIT 10
+            '''
+            tabla.execute(consulta_sql)
+            informacion_clientes = tabla.fetchall()
+            return informacion_clientes
+        
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error en la base de datos al cargar los clientes.\n{e}")
+        except Exception as e2:
+            showwarning("Advertencia", f"Error desconocido al cargar los clientes.\n{e2}")
+  
+    
+# ------- Gráfico de talles más vendidos -------
+    def grafico_talles_vendidos(self):
+        # Ejecutar la consulta SQL para obtener la distribución de talles vendidos
+        talles_vendidos = self.obtener_talles_vendidos()  # obtener el talle y sus ventas
+
+        # Separar datos en listas para graficar
+        talles = [f"{talle[0]} ({talle[1]} ventas)" for talle in talles_vendidos]
+        cantidades = [talle[1] for talle in talles_vendidos]
+
+        # Crear gráfico de pastel
+        plt.figure(figsize=(8, 8))
+        plt.pie(cantidades, labels=talles, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors, wedgeprops={'width': 0.3})
+        plt.title("Distribución de talles vendidos")
+        plt.tight_layout()
+        plt.show()
+
+    def obtener_talles_vendidos(self):
+        try:
+            tabla = coneccion.cursor()  # Ejecutar la consulta para obtener la cantidad de cada talle vendido
+            consulta_sql = '''
+            SELECT talle, count(talle) AS cantidad_vendida
+            FROM ventas
+            GROUP BY talle
+            '''
+            tabla.execute(consulta_sql)
+            informacion_talles = tabla.fetchall()
+            return informacion_talles
+        
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error en la base de datos al cargar la información de talles vendidos.\n{e}")
+        except Exception as e2:
+            showwarning("Advertencia", f"Error desconocido al cargar la información de talles vendidos.\n{e2}")
+   
+   # ------- Gráfico de versiones más vendidas -------
+    def grafico_versiones_vendidas(self):
+        # Ejecutar la consulta SQL para obtener la distribución de versiones vendidos
+        versiones_vendidas = self.obtener_versiones_vendidas()  # obtener la versión y sus ventas
+
+        # Separar datos en listas para graficar
+        versiones = [f"{version[0]} ({version[1]} ventas)" for version in versiones_vendidas]
+        cantidades = [version[1] for version in versiones_vendidas]
+
+        # Crear gráfico de pastel
+        plt.figure(figsize=(8, 8))
+        plt.pie(cantidades, labels=versiones, autopct='%1.1f%%', startangle=140, colors=['#87CEEB', '#2F4F4F', '#8B0000', '#8A2BE2'])
+        plt.title("Distribución de versiones vendidas")
+        plt.tight_layout()
+        plt.show()
+   
+   
+    def obtener_versiones_vendidas(self):
+        try:
+            tabla = coneccion.cursor()  # Ejecutar la consulta para obtener la cantidad de cada version vendida
+            consulta_sql = '''
+            SELECT version, sum(cantidad) FROM ventas v
+            JOIN productos p ON v.id_producto = p.id_producto
+            GROUP BY version
+            '''
+            tabla.execute(consulta_sql)
+            informacion_versiones = tabla.fetchall()
+            return informacion_versiones
+        
+        except sqlite3.OperationalError as e:
+            showwarning("Advertencia", f"Error en la base de datos al cargar la información de talles vendidos.\n{e}")
+        except Exception as e2:
+            showwarning("Advertencia", f"Error desconocido al cargar la información de talles vendidos.\n{e2}")
+   
 def cerrar(ventana_actual, ventana_anterior):
     ventana_actual.destroy()
     ventana_anterior.deiconify()
@@ -2867,11 +2969,11 @@ ruta_grafico_clientes = "botones/grafico-de-barras.png"
 imagen_grafico_clientes = Image.open(ruta_grafico_clientes)
 imagen_grafico_clientes = ImageTk.PhotoImage(imagen_grafico_clientes)
 
-ruta_grafico_talles = "botones/carrito-de-pasteles.png"
+ruta_grafico_talles = "botones/grafico-circular.png"
 imagen_grafico_talles = Image.open(ruta_grafico_talles)
 imagen_grafico_talles = ImageTk.PhotoImage(imagen_grafico_talles)
 
-ruta_grafico_versiones = "botones/grafico-circular.png"
+ruta_grafico_versiones = "botones/carrito-de-pasteles.png"
 imagen_grafico_versiones = Image.open(ruta_grafico_versiones)
 imagen_grafico_versiones = ImageTk.PhotoImage(imagen_grafico_versiones)
 
