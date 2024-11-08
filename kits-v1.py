@@ -8,6 +8,7 @@ import os
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import matplotlib.pyplot as plt
+import estadisticas as st
 
 # ventana de inicio
 icono = "icono-logo.ico"
@@ -16,7 +17,6 @@ ventana_login.title("Login")
 ventana_login.geometry("300x500")
 ventana_login.resizable(False, False)
 ventana_login.iconbitmap(icono) 
-
 
 # conección a la base de datos
 coneccion = sqlite3.connect("kits-database2.db")
@@ -63,8 +63,6 @@ class Login:    # Iniciar sesión
             showwarning("Advertencia", "Completa los campos de texto.")
 
 
-          
-           
 class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar sesión como cliente
     def __init__(self):
         self.nombre_cliente = ""
@@ -348,7 +346,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         
     
 # clase para cargar las imagenes de las camisetas y una descripción (nombre de la camiseta, jugador y precio). 
-# Esta clase esta diseñada para que la consulta SQL seleccione 5 campos (imagen, nombre_producto, jugador, precio y id_camiseta)
+# Esta clase esta diseñada para que la consulta SQL seleccione 5 campos (imagen, nombre_producto, jugador, precio y id_producto)
 class CargarCamisetas:  
     def __init__(self):
         self.imagenes_cargadas = []     # Lista para mantener la referencia a las imagenes
@@ -383,9 +381,9 @@ class CargarCamisetas:
             showwarning("Advertencia", f"Error en la base de datos de KitsNBA al cargar camisetas.\n{e}")
         
         
-        
+# clase con los métodos para que los clientes modifiquen su información
 class EditarCliente: 
-    def obtener_datos_cliente(self, id_usuario):
+    def obtener_datos_cliente(self, id_usuario):    # obtener información principal del cliente
         try:
             tabla = coneccion.cursor()
             tabla.execute("SELECT nombre, apellido, num_telefono, email, username FROM usuarios WHERE id_usuario = ?", (id_usuario, )) 
@@ -394,7 +392,7 @@ class EditarCliente:
         except sqlite3.OperationalError as e:
             showwarning("Advertencia", f"Error al acceder a los datos del cliente.\n{e}")
         
-    def interfaz_editar_datos_principales(self, id_usuario):
+    def interfaz_editar_datos_principales(self, id_usuario):    # interfaz para modificar
         nombre, apellido, telefono, email, username = self.obtener_datos_cliente(id_usuario) 
         editar_cliente = Toplevel()
         editar_cliente.title(f"Editar cliente - {nombre} {apellido}") 
@@ -460,7 +458,7 @@ class EditarCliente:
         logo_proyecto.place(x=250, y=160)
          
          
-    def editar_datos_principales(self, id_usuario, ventana):
+    def editar_datos_principales(self, id_usuario, ventana):    # método para validar y guardar la nueva información introducida por el cliente
         nuevo_nombre = self.entry_nombre.get()
         nuevo_apellido = self.entry_apellido.get()
         nuevo_telefono = self.entry_telefono.get()
@@ -513,7 +511,7 @@ class EditarCliente:
             showwarning("Advertencia", "Completa todos los campos de texto.")
                 
     
-    def interfaz_cambiar_clave(self, id_usuario):
+    def interfaz_cambiar_clave(self, id_usuario):   # interfaz para cambiar contraseña
         editar_clave = Toplevel()
         editar_clave.title("Restaurar contraseña") 
         editar_clave.geometry("300x150")
@@ -541,7 +539,7 @@ class EditarCliente:
         boton_actualizar.bind("<Leave>", lambda e: e.widget.config(bg="gray22"))
         
         
-    def cambiar_clave(self, id_usuario, ventana):
+    def cambiar_clave(self, id_usuario, ventana):   # lógica para cambiar contraseña
         clave_actual_introducida = self.entry_clave_original.get()
         nueva_clave = self.entry_nueva_clave.get()
         
@@ -574,7 +572,7 @@ class EditarCliente:
             showwarning("Advertencia", "No puedes ingresar contraseñas vacías.")
           
 
-class EditarDireccionCliente:
+class EditarDireccionCliente:   # clase para editar la dirección del cliente
     def direccion_actual_cliente(self, id_usuario):
         try:
             tabla = coneccion.cursor()
@@ -592,7 +590,7 @@ class EditarDireccionCliente:
             showwarning("Advertencia", f"Error al cargar la dirección actual del cliente.\n{e}")
             
     
-    def interfaz_editar_ubicacion(self, id_usuario):
+    def interfaz_editar_ubicacion(self, id_usuario):    # interfaz para modificar con nueva información
         self.id_ubicacion, provincia, localidad, direccion, codigo_postal = self.direccion_actual_cliente(id_usuario)
         editar_ubicacion = Toplevel()
         editar_ubicacion.title(f"Editar ubicación - {provincia}") 
@@ -643,7 +641,7 @@ class EditarDireccionCliente:
         logo_proyecto = Label(editar_ubicacion, image=imagen_proyecto, width=250, height=161)
         logo_proyecto.place(x=220, y=20)
                       
-    def editar_ubicacion(self, ventana):
+    def editar_ubicacion(self, ventana):    # lógica para actualizar la base de datos con la nueva ubicación
         provincia = self.entry_provincia.get()
         localidad = self.entry_localidad.get()
         direccion = self.entry_direccion.get()
@@ -667,8 +665,7 @@ class EditarDireccionCliente:
         else:
             showwarning("Advertencia", "No puedes ingresar localizaciones vacías.")
     
-    
-            
+# clase con los términos y condiciones
 class TerminosCondiciones:
     def interfaz_terminos(self, nombre_cliente):
         terminos = Toplevel()
@@ -711,7 +708,7 @@ Todo el contenido de la aplicación, incluyendo pero no limitado a, logotipos, i
 Nos reservamos el derecho de modificar estos términos y condiciones en cualquier momento. Las modificaciones entrarán en vigor inmediatamente después de su publicación en la aplicación. Es tu responsabilidad revisar estos términos periódicamente.
 
 10. Ley Aplicable
-Estos términos y condiciones se regirán e interpretarán de acuerdo con las leyes de la República Argentina, y cualquier disputa estará sujeta a la jurisdicción exclusiva de los tribunales de Mendoza.
+Estos términos y condiciones se regirán e interpretarán de acuerdo con las leyes de la República Argentina, y cualquier disputa estará sujeta a la jurisdicción exclusiva de los tribunales de la provincia de Mendoza.
 
 11. Contacto
 Si tienes alguna pregunta sobre estos términos y condiciones, por favor contáctanos a través de kitsnba@gmail.com.
@@ -1018,11 +1015,11 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         self.productos_relacionados(id_camiseta)    # cargar camisetas relacionadas
 
 
-class Comprar:
+class Comprar:  # clase para confirmar la compra
     def __init__(self):
         pass
     
-    def vista_confirmar_compra(self, ventana_compra, id_cliente, id_producto, imagen_producto):
+    def vista_confirmar_compra(self, ventana_compra, id_cliente, id_producto, imagen_producto): # interfaz confirmar compra
         self.id_cliente = id_cliente
         self.id_producto = id_producto 
         talles = vista_compra.obtener_talles()
@@ -1046,7 +1043,7 @@ class Comprar:
         self.widgets_confirmar_compra(ventana_compra, talles, imagen_producto)
            
      
-    def volver(self, ventana_compra, frame_descripcion, frame_camisetas):
+    def volver(self, ventana_compra, frame_descripcion, frame_camisetas):   # volver a la ventana anterior
         index = 2   # la ventana_compra, inicialmente tiene 2 widgets (2 frames con descripcion[0] y productos relacionados[1]), todos los widgets que se le colocan en el método 
         lista_widgets = ventana_compra.winfo_children() # vista_confirmar_compra, van a estar posicionados a partir de la posición 2. Entonces borramos a partir de esa posición
         while index < len(lista_widgets):
@@ -1057,7 +1054,7 @@ class Comprar:
         frame_camisetas.pack(fill=BOTH, expand=1)
             
     
-    def widgets_confirmar_compra(self, ventana_compra, talles, imagen_producto):
+    def widgets_confirmar_compra(self, ventana_compra, talles, imagen_producto):    # widgets de la interfaz
         nombre, apellido, telefono, email = self.obtener_informacion_cliente() 
         provincia, localidad, direccion, codigo_postal = self.obtener_direccion_cliente()   
         nombre_producto, marca, version, precio = self.obtener_informacion_producto()
@@ -1168,7 +1165,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         
         self.area_notas.bind("<FocusIn>", borrar_mensaje)
         
-        # tiempo estimado de envío
+        # tiempo estimado de envío calculado según la provincia del cliente (teniendo en cuenta que los envíos parten desde la provincia de Mendoza)
         tiempo_estimado_envio = self.calcular_tiempo_envío()
         label_tiempo_estimado = Label(ventana_compra, text=f"Tiempo de envío estimado: {tiempo_estimado_envio} días", bg='white', font=(fuente, 14))
         label_tiempo_estimado.place(x=550, y=500) 
@@ -1195,7 +1192,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         label_camiseta = Label(ventana_compra, image=imagen_producto)
         label_camiseta.place(x=1025, y=70) 
         
-        # tarjeta de credito
+        # campos tarjeta de dédito
         label_credito = Label(ventana_compra, text="Tarjeta de débito", bg='white', fg='black', font=(fuente, 12)) 
         label_credito.place(x=1110, y=520)
         
@@ -1238,7 +1235,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         boton_comprar.bind("<Enter>", lambda e: e.widget.config(bg="black", highlightthickness=2, highlightbackground="blue"))
         boton_comprar.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
     
-    def obtener_informacion_cliente(self):
+    def obtener_informacion_cliente(self):  # método para obtener la información principal del cliente
         try:
             tabla = coneccion.cursor()
             tabla.execute("SELECT nombre, apellido, num_telefono, email FROM usuarios WHERE id_usuario = ?", (self.id_cliente, ))
@@ -1247,7 +1244,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar la información de cliente.\n{e}")
             
-    def obtener_direccion_cliente(self):
+    def obtener_direccion_cliente(self): # método para obtener la ubicación del cliente
         try:
             tabla = coneccion.cursor()
             consulta = """
@@ -1262,7 +1259,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         except Exception as e:
             showwarning("Advertencia", f"Error al cargar la dirección de cliente.\n{e}")
             
-    def obtener_informacion_producto(self):
+    def obtener_informacion_producto(self): # método para obtener la información del producto
         try:
             tabla = coneccion.cursor()
             tabla.execute("SELECT nombre_producto, marca, version, precio FROM productos WHERE id_producto = ?", (self.id_producto, ))
@@ -1272,7 +1269,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
             showwarning("Advertencia", f"Error al cargar la información de producto.\n{e}")
             
             
-    def calcular_tiempo_envío(self):
+    def calcular_tiempo_envío(self): # método para calcular el tiempo de envío
         regiones = {
                     "NOA": ["Jujuy", "Salta", "Tucumán", "Catamarca", "La Rioja", "Santiago del Estero"],
                     "NEA": ["Misiones", "Corrientes", "Chaco", "Formosa"],
@@ -1300,9 +1297,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
             
         return dias_estimados
         
-        
-    
-    def verificar_vencimiento_tarjeta(self, venc):
+    def verificar_vencimiento_tarjeta(self, venc):  # método para verificar el vencimiento de la tarjeta de débito
         try:
             if len(venc) not in [4, 5]:
                 return False
@@ -1327,7 +1322,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         return True
         
             
-    def confirmar_compra(self, talles, ventana_compra):
+    def confirmar_compra(self, talles, ventana_compra): # validar los campos y confirmar la compra
         parte1 = self.parte1.get()
         parte2 = self.parte2.get()
         parte3 = self.parte3.get()
@@ -1372,20 +1367,21 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
         try:
             precio_unitario = self.obtener_informacion_producto()[3]     # obtener precio unitario
             notas_cliente = self.area_notas.get("1.0", "end-1c")         # obtener notas adicionales del cliente
+            
             if notas_cliente == self.mensaje_inicial or not notas_cliente:
                 notas_cliente = "El cliente no dio notas ni comentarios adicionales."
-                tabla = coneccion.cursor()   
-                for talle, cantidad in talles.items():
-                    cantidad = int(cantidad)
-                    precio_total_talle = precio_unitario * cantidad
-                    datos = (self.id_producto, self.id_cliente, precio_unitario, precio_total_talle, talle, cantidad, notas_cliente)
-                    tabla.execute("INSERT INTO ventas (id_producto, id_usuario, precio_unitario, precio_total, talle, cantidad, notas) VALUES (?, ?, ?, ?, ?, ?, ?)", datos)
-                    tabla.execute("UPDATE stock SET stock_talle = stock_talle - ? WHERE id_producto = ? AND talle = ?", (cantidad, self.id_producto, talle))  
-                    coneccion.commit()
+                
+            tabla = coneccion.cursor()   
+            for talle, cantidad in talles.items():
+                cantidad = int(cantidad)
+                precio_total_talle = precio_unitario * cantidad
+                datos = (self.id_producto, self.id_cliente, precio_unitario, precio_total_talle, talle, cantidad, notas_cliente)
+                tabla.execute("INSERT INTO ventas (id_producto, id_usuario, precio_unitario, precio_total, talle, cantidad, notas) VALUES (?, ?, ?, ?, ?, ?, ?)", datos)
+                tabla.execute("UPDATE stock SET stock_talle = stock_talle - ? WHERE id_producto = ? AND talle = ?", (cantidad, self.id_producto, talle))  
+                coneccion.commit()
                                             
                 showinfo("¡Felicitaciones!", f"Compraste {nombre_producto}")
-                tabla.execute("SELECT MAX(id_venta) FROM ventas")
-                id_compra = tabla.fetchone()[0]
+                id_compra = tabla.lastrowid 
                 self.descargar_ticket_pdf(id_compra, talles)   
                     
         except Exception as e:
@@ -1393,7 +1389,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
             return
             
             
-    def descargar_ticket_pdf(self, id_compra, talles):
+    def descargar_ticket_pdf(self, id_compra, talles):  # crear ticket al finalizar la compra
         confirmar_pdf = askyesno("Ticket PDF", "Gracias por tu compra\n¿Deseas descargar el ticket?")
         if confirmar_pdf:
             nombre, apellido, telefono, email = self.obtener_informacion_cliente() 
@@ -1460,7 +1456,7 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
     
 # ---------- Sesión de administrador -----------
 class InicioAdmin:
-    def ventana_inicio_admin(self, id_admin, username):
+    def ventana_inicio_admin(self, id_admin, username): # ventana de inicio
         self.id_admin = id_admin
         self.username = username
         nombre = self.obtener_nombre_admin()
@@ -1515,14 +1511,14 @@ class InicioAdmin:
         boton_graficos.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
     
-    def obtener_nombre_admin(self):
+    def obtener_nombre_admin(self): # obtener nombre de administrador para usarlo en la ventana de inicio
         tabla = coneccion.cursor()
         tabla.execute("SELECT nombre FROM usuarios WHERE id_usuario = ?", (self.id_admin, ))
         nombre_admin = tabla.fetchone()[0]
         return nombre_admin
     
         
-class Anadir:
+class Anadir:   # clase para añadir clientes, proveedores y administradores
     def interfaz_anadir(self, ventana_primaria):
         x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria, 400, 200)
         
@@ -2526,8 +2522,6 @@ class AnadirStock(Editar):  # heredar de la clase Editar
         
         
         
-       
-        
     # lógica para guardar el pedido en la base de datos, en las tablas compras y stock
     def anadir_talles(self, ventana):
         # validar al menos un talle seleccionado
@@ -2601,8 +2595,9 @@ class AnadirStock(Editar):  # heredar de la clase Editar
             showwarning("Advertencia", f"Error desconocido al obtener el ID del producto.\n{e2}") 
       
 
-class GraficosEstadisticas: # graficos: 1- productos más vendidos, 2- mejores clientes, 3- talles populares, 4- versiones más vendidas, 5- estadísticas
-    def ventana_inicio_graficos(self, ventana_primaria):
+# clase con gráficos y estadísticas para analizar información
+class GraficosEstadisticas: 
+    def ventana_inicio_graficos(self, ventana_primaria):    # ventana de inicio
         x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria) 
         
         inicio_graficos = Toplevel(ventana_primaria)
@@ -2614,35 +2609,35 @@ class GraficosEstadisticas: # graficos: 1- productos más vendidos, 2- mejores c
         
         # botones principales
         boton_grafico_productos = Button(inicio_graficos, image=imagen_grafico_productos, bg="gray22", fg="white", font=("Century Gothic", 11), text="Productos más vendidos",
-                                         compound='top', border=0, command=self.grafico_top_productos)
+                                         compound='top', border=0, cursor="hand2", command=self.grafico_top_productos)
         boton_grafico_productos.grid(row=0, column=0, padx=20, pady=50) 
         
         boton_grafico_productos.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
         boton_grafico_productos.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
         boton_grafico_clientes = Button(inicio_graficos, image=imagen_grafico_clientes, bg="gray22", fg="white", font=("Century Gothic", 11), text="Mejores clientes",
-                                         compound='top', border=0, command=self.grafico_mejores_clientes)
+                                         compound='top', border=0, cursor="hand2", command=self.grafico_mejores_clientes)
         boton_grafico_clientes.grid(row=0, column=1, padx=20, pady=50) 
         
         boton_grafico_clientes.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
         boton_grafico_clientes.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
         boton_grafico_talles = Button(inicio_graficos, image=imagen_grafico_talles, bg="gray22", fg="white", font=("Century Gothic", 11), text="Talles populares",
-                                         compound='top', border=0, command=self.grafico_talles_vendidos)
+                                         compound='top', border=0, cursor="hand2", command=self.grafico_talles_vendidos)
         boton_grafico_talles.grid(row=0, column=2, padx=20, pady=50) 
         
         boton_grafico_talles.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
         boton_grafico_talles.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
         boton_grafico_versiones = Button(inicio_graficos, image=imagen_grafico_versiones, bg="gray22", fg="white", font=("Century Gothic", 11), text="Versiones populares",
-                                         compound='top', border=0, command=self.grafico_versiones_vendidas)
+                                         compound='top', border=0, cursor="hand2", command=self.grafico_versiones_vendidas)
         boton_grafico_versiones.grid(row=0, column=3, padx=20, pady=50) 
         
         boton_grafico_versiones.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
         boton_grafico_versiones.bind("<Leave>", lambda e: e.widget.config(bg="gray22", highlightthickness=0))
         
         boton_estadisticas = Button(inicio_graficos, image=imagen_estadiscticas, bg="gray22", fg="white", font=("Century Gothic", 11), text="Estadísticas",
-                                         compound='top', border=0)
+                                         compound='top', border=0, cursor="hand2", command=lambda : self.interfaz_estadisticas(inicio_graficos))
         boton_estadisticas.grid(row=0, column=4, padx=20, pady=50) 
         
         boton_estadisticas.bind("<Enter>", lambda e: e.widget.config(bg="gray", highlightthickness=1, highlightbackground="blue"))
@@ -2754,7 +2749,7 @@ class GraficosEstadisticas: # graficos: 1- productos más vendidos, 2- mejores c
         try:
             tabla = coneccion.cursor()  # obtener las compras de clientes, su nombre de usuario y total invertido
             consulta_sql = '''  
-            SELECT count(v.id_usuario) AS compras_cliente, username, sum(precio_total) as total_invertido FROM ventas v
+            SELECT sum(cantidad) AS compras_cliente, username, sum(precio_total) as total_invertido FROM ventas v
             JOIN usuarios u ON v.id_usuario = u.id_usuario
             GROUP BY v.id_usuario
             ORDER BY compras_cliente DESC, total_invertido DESC 
@@ -2790,7 +2785,7 @@ class GraficosEstadisticas: # graficos: 1- productos más vendidos, 2- mejores c
         try:
             tabla = coneccion.cursor()  # Ejecutar la consulta para obtener la cantidad de cada talle vendido
             consulta_sql = '''
-            SELECT talle, count(talle) AS cantidad_vendida
+            SELECT talle, sum(cantidad) AS cantidad_vendida
             FROM ventas
             GROUP BY talle
             '''
@@ -2836,7 +2831,413 @@ class GraficosEstadisticas: # graficos: 1- productos más vendidos, 2- mejores c
             showwarning("Advertencia", f"Error en la base de datos al cargar la información de talles vendidos.\n{e}")
         except Exception as e2:
             showwarning("Advertencia", f"Error desconocido al cargar la información de talles vendidos.\n{e2}")
-   
+ 
+    # ------- Estadísticas -------
+    def interfaz_estadisticas(self, ventana_primaria):
+        self.st = st.Estadisticas()     # crear un objeto de la clase Estadisticas del módulo estadísticas 
+        # ventana 
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria, 0, 0) 
+        
+        ventana_primaria.withdraw()
+        v_estadisticas = Toplevel(ventana_primaria)
+        v_estadisticas.title("Estadísticas")
+        v_estadisticas.geometry(f"1350x750+{x_pos}+{y_pos}")
+        v_estadisticas.resizable(False, False)
+        v_estadisticas.config(bg="gray22")
+        v_estadisticas.iconbitmap(icono)
+        v_estadisticas.protocol("WM_DELETE_WINDOW", lambda : cerrar(v_estadisticas, ventana_primaria))
+        
+        # lista de estadísticas
+        listbox_estadisticas = Listbox(v_estadisticas, bg='gray22', fg='white', font=("Century Gothic", 16, 'bold'), width=100, height=25, justify='center')
+        listbox_estadisticas.grid(row=0, column=0,  columnspan=2, sticky='n', padx=70) 
+        
+        # botones
+        boton_ver_compras = Button(v_estadisticas, text="Ver compras", bg="gray22", fg="white", font=("Century Gothic", 12), cursor="hand2", border=0,
+                                   command=lambda : self.ver_compras(v_estadisticas))
+        boton_ver_compras.grid(row=1, column=0, pady=15)
+        
+        boton_ver_compras.bind("<Enter>", lambda e: e.widget.config(bg="gray", font=("Century Gothic", 12, "underline")))
+        boton_ver_compras.bind("<Leave>", lambda e: e.widget.config(bg="gray22", font=("Century Gothic", 12)))
+        
+        boton_ver_ventas = Button(v_estadisticas, text="Ver ventas", bg="gray22", fg="white", font=("Century Gothic", 12), cursor="hand2", border=0,
+                                  command=lambda : self.ver_ventas(v_estadisticas))
+        boton_ver_ventas.grid(row=1, column=1, pady=15)
+        
+        boton_ver_ventas.bind("<Enter>", lambda e: e.widget.config(bg="gray", font=("Century Gothic", 12, "underline")))
+        boton_ver_ventas.bind("<Leave>", lambda e: e.widget.config(bg="gray22", font=("Century Gothic", 12)))
+        
+        # obtener datos de estadísticas
+        # más populares
+        camiseta_mas_vendida = self.st.camiseta_mas_vendida()
+        marca_mas_vendida = self.st.marca_mas_vendida()
+        version_mas_vendida = self.st.version_mas_vendida()
+        jugador_mas_vendido = self.st.jugador_mas_vendido()
+        equipo_mas_vendido = self.st.equipo_mas_vendido()
+        color_mas_vendido = self.st.color_mas_vendido()
+        talle_mas_vendido = self.st.talle_mas_vendido()
+        # menos populares
+        camiseta_menos_vendida = self.st.camiseta_menos_vendida()
+        marca_menos_vendida = self.st.marca_menos_vendida()
+        version_menos_vendida = self.st.version_menos_vendida()
+        jugador_menos_vendido = self.st.jugador_menos_vendido()
+        equipo_menos_vendido = self.st.equipo_menos_vendido()
+        color_menos_vendido = self.st.color_menos_vendido()
+        talle_menos_vendido = self.st.talle_menos_vendido()
+        # camiseta más cara y más barata
+        camiseta_mas_cara = self.st.camiseta_mas_cara()
+        camiseta_mas_barata = self.st.camiseta_mas_barata()
+        # total recaudado
+        total_recaudado = self.st.total_recaudado()
+        # top 5
+        top_5_jugadores = self.st.top_5_jugadores()
+        top_5_equipos = self.st.top_5_equipos()
+        # mejor cliente
+        mejor_cliente = self.st.mejor_cliente()
+        
+        # insertar más populares en el listbox
+        listbox_estadisticas.insert(0, "Estadísticas")
+        listbox_estadisticas.insert(1, "")
+        listbox_estadisticas.insert(2, "Más populares")
+        listbox_estadisticas.insert(3, f"Total camisetas vendidas: {self.st.total_camisetas_vendidas()}")
+        listbox_estadisticas.insert(4, f"Camiseta más vendida: {camiseta_mas_vendida[0]} {camiseta_mas_vendida[1]} {camiseta_mas_vendida[2]} {camiseta_mas_vendida[3]} (ID: {camiseta_mas_vendida[4]})")
+        listbox_estadisticas.insert(5, f"Ventas de camiseta más vendida: {camiseta_mas_vendida[5]}")    
+        listbox_estadisticas.insert(6, f"Marca más vendida: {marca_mas_vendida[0]}")
+        listbox_estadisticas.insert(7, f"Ventas de {marca_mas_vendida[0]}: {marca_mas_vendida[1]}")
+        listbox_estadisticas.insert(8, f"Versión de camiseta más vendida: {version_mas_vendida[0]}")
+        listbox_estadisticas.insert(9, f"Ventas de {version_mas_vendida[0]}: {version_mas_vendida[1]}")
+        listbox_estadisticas.insert(10, f"Jugador con más camisetas vendidas: {jugador_mas_vendido[0]}")
+        listbox_estadisticas.insert(11, f"Ventas de camisetas de {jugador_mas_vendido[0]}: {jugador_mas_vendido[1]}")
+        listbox_estadisticas.insert(12, f"Equipo con camisetas más vendidas: {equipo_mas_vendido[0]}")
+        listbox_estadisticas.insert(13, f"Ventas de camisetas de {equipo_mas_vendido[0]}: {equipo_mas_vendido[1]}")
+        listbox_estadisticas.insert(14, f"Color más popular: {color_mas_vendido[0]}")
+        listbox_estadisticas.insert(15, f"Ventas de camisetas de color {color_mas_vendido[0]}: {color_mas_vendido[1]}")
+        listbox_estadisticas.insert(16, f"Talle más vendido: {talle_mas_vendido[0]}")
+        listbox_estadisticas.insert(17, f"Ventas de camisetas {talle_mas_vendido[0]}: {talle_mas_vendido[1]}")
+        listbox_estadisticas.insert(18, "")
+        # insertar menos populares 
+        listbox_estadisticas.insert(19, "Menos populares")
+        listbox_estadisticas.insert(20, f"Camiseta menos vendida: {camiseta_menos_vendida[0]} {camiseta_menos_vendida[1]} {camiseta_menos_vendida[2]} {camiseta_menos_vendida[3]} (ID: {camiseta_menos_vendida[4]})")
+        listbox_estadisticas.insert(21, f"Ventas de camiseta menos vendida: {camiseta_menos_vendida[5]}")    
+        listbox_estadisticas.insert(22, f"Marca menos vendida: {marca_menos_vendida[0]}")
+        listbox_estadisticas.insert(23, f"Ventas de {marca_menos_vendida[0]}: {marca_menos_vendida[1]}")
+        listbox_estadisticas.insert(24, f"Versión de camiseta menos vendida: {version_menos_vendida[0]}")
+        listbox_estadisticas.insert(25, f"Ventas de {version_menos_vendida[0]}: {version_menos_vendida[1]}")
+        listbox_estadisticas.insert(26, f"Jugador con menos camisetas vendidas: {jugador_menos_vendido[0]}")
+        listbox_estadisticas.insert(27, f"Ventas de camisetas de {jugador_menos_vendido[0]}: {jugador_menos_vendido[1]}")
+        listbox_estadisticas.insert(28, f"Equipo con menos camisetas vendidas: {equipo_menos_vendido[0]}")
+        listbox_estadisticas.insert(29, f"Ventas de camisetas de {equipo_menos_vendido[0]}: {equipo_menos_vendido[1]}")
+        listbox_estadisticas.insert(30, f"Color menos popular: {color_menos_vendido[0]}")
+        listbox_estadisticas.insert(31, f"Ventas de camisetas de color {color_menos_vendido[0]}: {color_menos_vendido[1]}")
+        listbox_estadisticas.insert(32, f"Talle menos vendido: {talle_menos_vendido[0]}")
+        listbox_estadisticas.insert(33, f"Ventas de camisetas {talle_menos_vendido[0]}: {talle_menos_vendido[1]}")
+        listbox_estadisticas.insert(34, "")
+        # insertar camiseta más cara y más barata
+        listbox_estadisticas.insert(35, f"Camiseta más cara: {camiseta_mas_cara[0]} {camiseta_mas_cara[1]} {camiseta_mas_cara[2]} {camiseta_mas_cara[3]} (ID: {camiseta_mas_cara[4]})")
+        listbox_estadisticas.insert(36, f"Ventas de camiseta más cara: {camiseta_mas_cara[5]}")    
+        listbox_estadisticas.insert(37, f"Camiseta más barata: {camiseta_mas_barata[0]} {camiseta_mas_barata[1]} {camiseta_mas_barata[2]} {camiseta_mas_barata[3]} (ID: {camiseta_mas_barata[4]})")
+        listbox_estadisticas.insert(38, f"Ventas de camiseta más barata: {camiseta_mas_barata[5]}")  
+        # insertar tops 5
+        listbox_estadisticas.insert(39, "")
+        listbox_estadisticas.insert(40, "Top 5 jugadores con más ventas")
+        listbox_estadisticas.insert(41, f" 1- {top_5_jugadores[0][0]}: {top_5_jugadores[0][1]} ventas")
+        listbox_estadisticas.insert(42, f" 2- {top_5_jugadores[1][0]}: {top_5_jugadores[1][1]} ventas")
+        listbox_estadisticas.insert(43, f" 3- {top_5_jugadores[2][0]}: {top_5_jugadores[2][1]} ventas")
+        listbox_estadisticas.insert(44, f" 4- {top_5_jugadores[3][0]}: {top_5_jugadores[3][1]} ventas")
+        listbox_estadisticas.insert(45, f" 5- {top_5_jugadores[4][0]}: {top_5_jugadores[4][1]} ventas")
+        listbox_estadisticas.insert(46, "")
+        listbox_estadisticas.insert(47, "Top 5 equipos con más ventas")
+        listbox_estadisticas.insert(48, f" 1- {top_5_equipos[0][0]}: {top_5_equipos[0][1]} ventas")
+        listbox_estadisticas.insert(49, f" 2- {top_5_equipos[1][0]}: {top_5_equipos[1][1]} ventas")
+        listbox_estadisticas.insert(50, f" 3- {top_5_equipos[2][0]}: {top_5_equipos[2][1]} ventas")
+        listbox_estadisticas.insert(51, f" 4- {top_5_equipos[3][0]}: {top_5_equipos[3][1]} ventas")
+        listbox_estadisticas.insert(52, f" 5- {top_5_equipos[4][0]}: {top_5_equipos[4][1]} ventas")
+        # mejor cliente
+        listbox_estadisticas.insert(53, "")
+        listbox_estadisticas.insert(54, f"Mejor cliente: {mejor_cliente[0]} {mejor_cliente[1]} ({mejor_cliente[2]}) - {mejor_cliente[3]} ventas")
+        # total recaudado
+        listbox_estadisticas.insert(55, "")
+        listbox_estadisticas.insert(56, f"Total recaudado: {total_recaudado}")  
+        
+    # método para ver las compras a proveedores
+    def ver_compras(self, ventana_primaria):
+        bloquear_ventanas_duplicadas(ventana_primaria) 
+        
+        # ventana
+        ventana_primaria.withdraw()
+        interfaz_ver_compras = Toplevel(ventana_primaria)
+        interfaz_ver_compras.title("Ver compras a proveedores")
+        interfaz_ver_compras.geometry("1000x500")
+        interfaz_ver_compras.resizable(False, False)
+        interfaz_ver_compras.config(bg="gray22")
+        interfaz_ver_compras.iconbitmap(icono)
+        interfaz_ver_compras.protocol("WM_DELETE_WINDOW", lambda : cerrar(interfaz_ver_compras, ventana_primaria))
+        
+        label_titulo = Label(interfaz_ver_compras, text="Compras registradas", bg="gray22", fg="white", font=("Century Gothic", 12))
+        label_titulo.pack()
+        
+        # estilo para la lista (treeview)
+        style = ttk.Style()
+        style.theme_use("default")
+
+        # Configurar fondo oscuro y letras blancas para Treeview
+        style.configure("Treeview",
+                        background="gray22",    # Fondo oscuro
+                        foreground="white",     # Letras blancas
+                        fieldbackground="gray22")  # Fondo de las celdas
+
+        style.map("Treeview", 
+                background=[("selected", "DodgerBlue4")])  # Color de fondo para la fila seleccionada
+        
+        # lista
+        lista_compras = ttk.Treeview(interfaz_ver_compras, columns=("ID", "Producto", "Color", "Jugador", "Marca", "Version", "Precio total", "Talle", "Cantidad", "Comprado por"),
+                                     show="headings", style="Treeview")
+        
+        # columnas
+        lista_compras.heading("ID", text="ID")
+        lista_compras.heading("Producto", text="Producto")
+        lista_compras.heading("Color", text="Color")  
+        lista_compras.heading("Jugador", text="Jugador")
+        lista_compras.heading("Marca", text="Marca")
+        lista_compras.heading("Version", text="Versión")
+        lista_compras.heading("Precio total", text="Precio total")                 
+        lista_compras.heading("Talle", text="Talle")
+        lista_compras.heading("Cantidad", text="Cantidad") 
+        lista_compras.heading("Comprado por", text="Comprado por")     
+        
+        lista_compras.column("ID", anchor="center", width=50)
+        lista_compras.column("Producto", anchor="center", width=200)
+        lista_compras.column("Color", anchor="center", width=100)
+        lista_compras.column("Jugador", anchor="center", width=150)
+        lista_compras.column("Marca", anchor="center", width=70)
+        lista_compras.column("Version", anchor="center", width=90)
+        lista_compras.column("Precio total", anchor="center", width=90)
+        lista_compras.column("Talle", anchor="center", width=50)
+        lista_compras.column("Cantidad", anchor="center", width=60)
+        lista_compras.column("Comprado por", anchor="center", width=150)
+        
+        compras = self.st.lista_compras()   # Llamar al método lista_compras del módulo estadísticas
+        
+        for compra in compras:
+            lista_compras.insert("", END, values=compra)      # insertar tuplas con los datos de las compras
+    
+        
+        # Añadir scroll vertical si hay muchos datos
+        scrollbar = ttk.Scrollbar(interfaz_ver_compras, orient="vertical", command=lista_compras.yview)
+        lista_compras.configure(yscroll=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        
+        lista_compras.pack(expand=True, fill='both')
+        
+    
+    def ver_ventas(self, ventana_primaria):
+        self.st = st.Estadisticas()
+        
+        bloquear_ventanas_duplicadas(ventana_primaria) 
+        
+        # ventana
+        ventana_primaria.withdraw()
+        interfaz_ver_ventas = Toplevel(ventana_primaria)
+        interfaz_ver_ventas.title("Ver ventas")
+        interfaz_ver_ventas.geometry("1200x500")
+        interfaz_ver_ventas.resizable(False, False)
+        interfaz_ver_ventas.config(bg="gray22")
+        interfaz_ver_ventas.iconbitmap(icono)
+        interfaz_ver_ventas.protocol("WM_DELETE_WINDOW", lambda : cerrar(interfaz_ver_ventas, ventana_primaria))
+        
+        label_titulo = Label(interfaz_ver_ventas, text="Ventas registradas", bg="gray22", fg="white", font=("Century Gothic", 12))
+        label_titulo.pack()
+        
+        # estilo para la lista (treeview)
+        style = ttk.Style()
+        style.theme_use("default")
+
+        # Configurar fondo oscuro y letras blancas para Treeview
+        style.configure("Treeview",
+                        background="gray22",    # Fondo oscuro
+                        foreground="white",     # Letras blancas
+                        fieldbackground="gray22")  # Fondo de las celdas
+
+        style.map("Treeview", 
+                background=[("selected", "DodgerBlue4")])  # Color de fondo para la fila seleccionada
+        
+        # lista
+        self.lista_ventas = ttk.Treeview(interfaz_ver_ventas, columns=("ID venta", "ID producto", "Producto", "Jugador", "Version", "Color", "Precio total", "Cantidad", "Talle", "Cliente"),
+                                     show="headings", style="Treeview")
+        
+        # columnas
+        self.lista_ventas.heading("ID venta", text="ID venta")
+        self.lista_ventas.heading("ID producto", text="ID producto")
+        self.lista_ventas.heading("Producto", text="Producto")  
+        self.lista_ventas.heading("Jugador", text="Jugador")
+        self.lista_ventas.heading("Version", text="Versión")
+        self.lista_ventas.heading("Color", text="Color")
+        self.lista_ventas.heading("Precio total", text="Precio total")    
+        self.lista_ventas.heading("Cantidad", text="Cantidad")
+        self.lista_ventas.heading("Talle", text="Talle")
+        self.lista_ventas.heading("Cliente", text="Cliente")     
+        
+        self.lista_ventas.column("ID venta", anchor="center", width=65)
+        self.lista_ventas.column("ID producto", anchor="center", width=65)
+        self.lista_ventas.column("Producto", anchor="center", width=200)
+        self.lista_ventas.column("Jugador", anchor="center", width=150)
+        self.lista_ventas.column("Version", anchor="center", width=100)
+        self.lista_ventas.column("Color", anchor="center", width=100)
+        self.lista_ventas.column("Precio total", anchor="center", width=90)
+        self.lista_ventas.column("Cantidad", anchor="center", width=50)
+        self.lista_ventas.column("Talle", anchor="center", width=60)
+        self.lista_ventas.column("Cliente", anchor="center", width=150)
+        
+        ventas = self.st.lista_ventas()   # Llamar al método lista_ventas del módulo estadísticas
+        
+        for venta in ventas:
+            self.lista_ventas.insert("", END, values=venta)      # insertar tuplas con los datos de las compras
+    
+        
+        # Añadir scroll vertical si hay muchos datos
+        scrollbar = ttk.Scrollbar(interfaz_ver_ventas, orient="vertical", command=self.lista_ventas.yview)
+        self.lista_ventas.configure(yscroll=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        
+        self.lista_ventas.pack(expand=True, fill='both')
+        self.lista_ventas.bind("<Double-1>", lambda event : self.ver_informacion_venta(interfaz_ver_ventas))
+        
+    # mostrar información de venta al hacer doble clic en el treeview
+    def ver_informacion_venta(self, ventana_primaria):
+        item_seleccionado = self.lista_ventas.selection()
+        if item_seleccionado:
+            info_lista_venta = self.lista_ventas.item(item_seleccionado)["values"]
+            informacion_ventas = self.st.informacion_venta((info_lista_venta[0], ))
+            
+            bloquear_ventanas_duplicadas(ventana_primaria)
+            
+            ventana_primaria.withdraw()
+            interfaz_ver_venta = Toplevel(ventana_primaria)
+            interfaz_ver_venta.title("Ver ventas")
+            interfaz_ver_venta.geometry("950x630")
+            interfaz_ver_venta.resizable(False, False)
+            interfaz_ver_venta.config(bg="gray22")
+            interfaz_ver_venta.iconbitmap(icono)
+            interfaz_ver_venta.protocol("WM_DELETE_WINDOW", lambda : cerrar(interfaz_ver_venta, ventana_primaria))
+            
+            
+            # widgets con información de la compra
+            frame_informacion = Frame(interfaz_ver_venta, bg="gray22")
+            frame_informacion.pack(anchor='nw', pady=10)
+            
+            # info ID producto
+            label_id = Label(frame_informacion, text="ID producto:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_id.grid(row=0, column=0, sticky='w', padx=10, pady=10)
+            
+            entry_id = Entry(frame_informacion, width=10, font=("Century Gothic", 11))
+            entry_id.grid(row=1, column=0, sticky='w', padx=10)
+            entry_id.insert(0, informacion_ventas[0][0])
+            
+            # nombre proveedor
+            label_distribucion = Label(frame_informacion, text="Distribuido por:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_distribucion.grid(row=2, column=0, sticky='w', padx=10, pady=10)
+            
+            entry_distribucion = Entry(frame_informacion, width=30, font=("Century Gothic", 11))
+            entry_distribucion.grid(row=3, column=0, sticky='w', padx=10)
+            entry_distribucion.insert(0, informacion_ventas[0][1])
+            
+            # nombre producto
+            label_producto = Label(frame_informacion, text="Producto:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_producto.grid(row=4, column=0, sticky='w', padx=10, pady=10)
+            
+            entry_producto = Entry(frame_informacion, width=30, font=("Century Gothic", 11))
+            entry_producto.grid(row=5, column=0, sticky='w', padx=10)
+            entry_producto.insert(0, informacion_ventas[0][2])
+            
+            # precio unitario
+            label_precio = Label(frame_informacion, text="Precio unitario:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_precio.grid(row=6, column=0, sticky='w', padx=10, pady=10)
+            
+            entry_precio = Entry(frame_informacion, width=20, font=("Century Gothic", 11))
+            entry_precio.grid(row=7, column=0, sticky='w', padx=10)
+            entry_precio.insert(0, informacion_ventas[0][3])
+            
+            
+            # precio total
+            label_total = Label(frame_informacion, text="Precio total:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_total.grid(row=8, column=0, sticky='w', padx=10, pady=10)
+            
+            entry_total = Entry(frame_informacion, width=20, font=("Century Gothic", 11))
+            entry_total.grid(row=9, column=0, sticky='w', padx=10)
+            entry_total.insert(0, informacion_ventas[0][4])
+            
+            # cantidad
+            label_cantidad = Label(frame_informacion, text="Cantidad:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_cantidad.grid(row=10, column=0, sticky='w', padx=10, pady=10)
+            
+            entry_cantidad = Entry(frame_informacion, width=20, font=("Century Gothic", 11))
+            entry_cantidad.grid(row=11, column=0, sticky='w', padx=10)
+            entry_cantidad.insert(0, informacion_ventas[0][5])
+            
+            # talle
+            label_talle = Label(frame_informacion, text="Talle:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_talle.grid(row=12, column=0, sticky='w', padx=10, pady=10)
+            
+            entry_talle = Entry(frame_informacion, width=20, font=("Century Gothic", 11))
+            entry_talle.grid(row=13, column=0, sticky='w', padx=10)
+            entry_talle.insert(0, informacion_ventas[0][6])
+            
+            # marca
+            label_marca = Label(frame_informacion, text="Marca:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_marca.grid(row=0, column=1, padx=60, sticky='w')
+            
+            entry_marca = Entry(frame_informacion, width=20, font=("Century Gothic", 11))
+            entry_marca.grid(row=1, column=1, padx=60, sticky='w')
+            entry_marca.insert(0, informacion_ventas[0][7])
+            
+            # version
+            label_version = Label(frame_informacion, text="Versión:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_version.grid(row=2, column=1, padx=60, sticky='w')
+            
+            entry_version = Entry(frame_informacion, width=20, font=("Century Gothic", 11))
+            entry_version.grid(row=3, column=1, padx=60, sticky='w')
+            entry_version.insert(0, informacion_ventas[0][8])
+            
+            # jugador
+            label_jugador = Label(frame_informacion, text="Jugador:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_jugador.grid(row=4, column=1, padx=60, sticky='w')
+            
+            entry_jugador = Entry(frame_informacion, width=20, font=("Century Gothic", 11))
+            entry_jugador.grid(row=5, column=1, padx=60, sticky='w')
+            entry_jugador.insert(0, informacion_ventas[0][9])
+            
+            
+            # color
+            label_color = Label(frame_informacion, text="Color:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_color.grid(row=6, column=1, padx=60, sticky='w')
+            
+            entry_color = Entry(frame_informacion, width=20, font=("Century Gothic", 11))
+            entry_color.grid(row=7, column=1, padx=60, sticky='w')
+            entry_color.insert(0, informacion_ventas[0][10])
+            
+            # cliente
+            label_cliente = Label(frame_informacion, text="Cliente:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_cliente.grid(row=8, column=1, padx=60, sticky='w')
+            
+            entry_cliente = Entry(frame_informacion, width=20, font=("Century Gothic", 11))
+            entry_cliente.grid(row=9, column=1, padx=60, sticky='w')
+            entry_cliente.insert(0, informacion_ventas[0][11])
+            
+            # notas cliente
+            label_notas = Label(frame_informacion, text="Notas del cliente:", fg='white', bg='gray22', font=("Century Gothic", 11))
+            label_notas.grid(row=10, column=1, padx=60, sticky='w')
+            
+            entry_notas = Text(frame_informacion, width=30, height=7, font=("Century Gothic", 11), wrap='word')
+            entry_notas.grid(row=11, column=1, padx=60, rowspan=12, sticky='w')
+            entry_notas.insert("1.0", informacion_ventas[0][12])
+            
+            # imagen
+            info_imagen = cargar_camisetas.cargar_camisetas("SELECT imagen, nombre_producto, jugador, precio, id_producto FROM productos WHERE id_producto = ?", (info_lista_venta[1], ))
+            label_imagen = Label(frame_informacion, image=info_imagen[0][0])
+            label_imagen.grid(row=0, column=2, pady=10, rowspan=12)
+         
+         
+        
+# funcion para cerrar la ventana actual y mostrar la anterior 
 def cerrar(ventana_actual, ventana_anterior):
     ventana_actual.destroy()
     ventana_anterior.deiconify()
@@ -2851,13 +3252,8 @@ def bloquear_ventanas_duplicadas(ventana_primaria, x_pos=550, y_pos=250):
     
     return x_pos, y_pos     # posicion de la ventana eliminada
          
-# widgets login
-ruta_fondo = "imagenes/leBron-dunk.jpg"
-imagen_fondo = Image.open(ruta_fondo)
-imagen_fondo = imagen_fondo.resize((300, 500), Image.LANCZOS)
-imagen_fondo = ImageTk.PhotoImage(imagen_fondo)
-label_fondo = Label(ventana_login, image=imagen_fondo)
-label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
+         
+
 
 # lista provincias
 provincias = ["Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba",
@@ -2866,19 +3262,6 @@ provincias = ["Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba",
                     "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe",
                     "Santiago del Estero", "Tucumán"]
 
-# entry username
-entry_username = Entry(ventana_login, width=30, justify='center')
-entry_username.insert(0, "Nombre de usuario")
-entry_username.place(x=60, y=200)
-
-# entry password
-entry_password = Entry(ventana_login, width=30, justify='center', show="*")
-entry_password.insert(0, "Contraseña")
-entry_password.place(x=60, y=240)
-
-# colores interfaz
-color_fondo_cliente = "snow"
-fuente_cliente = ("Century Gothic", 12)
 
 # botones con imagenes
 ruta_imagen_modificar_ubicacion = "botones/editar-ubicacion2.png"
@@ -2994,8 +3377,40 @@ add = Anadir()
 edit = Editar()
 add_stock = AnadirStock()
 graficos = GraficosEstadisticas()
-graficos.ventana_inicio_graficos(ventana_login)
-#graficos.obtener_top_productos()
+
+
+# widgets login
+ruta_fondo = "imagenes/leBron-dunk2.jpg"
+imagen_fondo = Image.open(ruta_fondo)
+imagen_fondo = imagen_fondo.resize((300, 500), Image.LANCZOS)
+imagen_fondo = ImageTk.PhotoImage(imagen_fondo)
+label_fondo = Label(ventana_login, image=imagen_fondo)
+label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
+
+# entry username
+entry_username = Entry(ventana_login, width=30, justify='center')
+entry_username.insert(0, "Nombre de usuario")
+entry_username.place(x=60, y=200)
+
+def borrar_username(event):
+    entry_username.delete(0, END)
+
+entry_username.bind("<FocusIn>", borrar_username)
+
+# entry password
+entry_password = Entry(ventana_login, width=30, justify='center', show="*")
+entry_password.insert(0, "Contraseña")
+entry_password.place(x=60, y=240)
+
+def borrar_password(event):
+    entry_password.delete(0, END)
+
+entry_password.bind("<FocusIn>", borrar_password)
+
+# colores interfaz
+color_fondo_cliente = "snow"
+fuente_cliente = ("Century Gothic", 12)
+
 # botón ingresar
 ingresar = Login()
 boton_ingresar = Button(ventana_login, text="Ingresar", width=8, cursor="hand2", command=ingresar.login)
