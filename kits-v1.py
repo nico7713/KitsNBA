@@ -14,7 +14,7 @@ import estadisticas as st
 icono = "icono-logo.ico"
 ventana_login = Tk()
 ventana_login.title("Login")
-ventana_login.geometry("300x500")
+ventana_login.geometry("300x500+500+100")
 ventana_login.resizable(False, False)
 ventana_login.iconbitmap(icono) 
 
@@ -44,12 +44,12 @@ class Login:    # Iniciar sesión
                     
                     if tipo_usuario == "cliente":
                         # ventana de inicio para clientes
-                        inicio_cliente.inicio_cliente(id_usuario, self.username)
                         ventana_login.withdraw()
+                        inicio_cliente.inicio_cliente(id_usuario, self.username)
                     elif tipo_usuario == "admin":
                         # ventana de inicio para administradores
-                        inicio_admin.ventana_inicio_admin(id_usuario, self.username)
                         ventana_login.withdraw()
+                        inicio_admin.ventana_inicio_admin(id_usuario, self.username)
                     else:
                         showwarning("Error al iniciar sesión", "Tipo de usuario desconocido.")
 
@@ -79,7 +79,7 @@ class InicioCliente:    # Clase para mostrar la ventana de inicio al iniciar ses
         # ventana inicio cliente - creación y configuración
         inicio = Toplevel()
         inicio.title(f"Inicio - {self.username_cliente}")
-        inicio.geometry("1360x760")
+        inicio.geometry("1360x760+0+0")
         inicio.resizable(False, False)
         inicio.config(bg=color_fondo_cliente)
         inicio.iconbitmap(icono)
@@ -1004,7 +1004,7 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
         else:   # crear y mostrar la ventana de compra al elegir una camiseta desde la ventana de inicio. 
             self.ventana_compra = Toplevel()
             self.ventana_compra.title(f"Comprar {producto} {jugador} {color}")
-            self.ventana_compra.geometry("1366x768")
+            self.ventana_compra.geometry("1366x768+0+0")
             self.ventana_compra.resizable(False, False)
             self.ventana_compra.config(bg='white')
             self.ventana_compra.iconbitmap(icono)
@@ -1380,9 +1380,9 @@ Por favor, utiliza este espacio para agregar cualquier comentario sobre tu dispo
                 tabla.execute("UPDATE stock SET stock_talle = stock_talle - ? WHERE id_producto = ? AND talle = ?", (cantidad, self.id_producto, talle))  
                 coneccion.commit()
                                             
-                showinfo("¡Felicitaciones!", f"Compraste {nombre_producto}")
-                id_compra = tabla.lastrowid 
-                self.descargar_ticket_pdf(id_compra, talles)   
+            showinfo("¡Felicitaciones!", f"Compraste {nombre_producto}")
+            id_compra = tabla.lastrowid 
+            self.descargar_ticket_pdf(id_compra, talles)   
                     
         except Exception as e:
             showwarning("Advertencia", f"Ocurrió un error al procesar el pago. Contacte al administrador.\n{e}")
@@ -2598,7 +2598,7 @@ class AnadirStock(Editar):  # heredar de la clase Editar
 # clase con gráficos y estadísticas para analizar información
 class GraficosEstadisticas: 
     def ventana_inicio_graficos(self, ventana_primaria):    # ventana de inicio
-        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria) 
+        x_pos, y_pos = bloquear_ventanas_duplicadas(ventana_primaria, 100, 200) 
         
         inicio_graficos = Toplevel(ventana_primaria)
         inicio_graficos.title("Gráficos y estadísticas")
@@ -2841,7 +2841,7 @@ class GraficosEstadisticas:
         ventana_primaria.withdraw()
         v_estadisticas = Toplevel(ventana_primaria)
         v_estadisticas.title("Estadísticas")
-        v_estadisticas.geometry(f"1350x750+{x_pos}+{y_pos}")
+        v_estadisticas.geometry(f"1366x768+{x_pos}+{y_pos}")
         v_estadisticas.resizable(False, False)
         v_estadisticas.config(bg="gray22")
         v_estadisticas.iconbitmap(icono)
@@ -3393,7 +3393,8 @@ entry_username.insert(0, "Nombre de usuario")
 entry_username.place(x=60, y=200)
 
 def borrar_username(event):
-    entry_username.delete(0, END)
+    if entry_username.get() == "Nombre de usuario":
+        entry_username.delete(0, END)
 
 entry_username.bind("<FocusIn>", borrar_username)
 
@@ -3403,7 +3404,8 @@ entry_password.insert(0, "Contraseña")
 entry_password.place(x=60, y=240)
 
 def borrar_password(event):
-    entry_password.delete(0, END)
+    if entry_password.get() == "Contraseña":
+        entry_password.delete(0, END)
 
 entry_password.bind("<FocusIn>", borrar_password)
 
