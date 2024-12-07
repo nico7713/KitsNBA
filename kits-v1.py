@@ -9,6 +9,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import matplotlib.pyplot as plt
 import estadisticas as st
+import jugadores_destacados
+import webbrowser
 
 # ventana de inicio
 icono = "icono-logo.ico"
@@ -779,14 +781,31 @@ class VistaCompra:      # clase para la vista de compra de una camiseta
                               command=lambda imagen=imagen_camiseta: confirmar_compra.vista_confirmar_compra(self.ventana_compra, self.id_cliente, id_camiseta, imagen))
         boton_compra.place(x=10, y=460)
         
-        boton_compra.bind("<Enter>", lambda e: e.widget.config(bg=color, highlightthickness=1))
-        boton_compra.bind("<Leave>", lambda e: e.widget.config(bg=color, highlightthickness=0))
+        boton_compra.bind("<Enter>", lambda e: e.widget.config(highlightthickness=1))
+        boton_compra.bind("<Leave>", lambda e: e.widget.config(highlightthickness=0))
         
         
         # logo aplicación
         logo = Label(frame_descripcion, image=imagen_proyecto)
         logo.place(x=350, y=505)
         
+        # ----- label jugador destacado -----
+        destacados = jugadores_destacados.JugadoresDestacados()
+        # 'jugador_destacado' verifica que el jugador que recibe sea un jugador destacado, si lo es, y tiene más de 25 puntos, devuelve un mensaje y un enlace, si no, retorna None
+        datos_jugador = destacados.jugador_destacado(jugador)   
+        if datos_jugador:
+            mensaje, enlace = datos_jugador
+            label_jugador_destacado = Label(frame_descripcion, text=mensaje, bg='white', fg='black', font=("Calibri", 12), cursor="hand2")
+            label_jugador_destacado.place(x=10, y=730)
+            
+            label_jugador_destacado.bind("<Enter>", lambda e: e.widget.config(fg="blue"))
+            label_jugador_destacado.bind("<Leave>", lambda e: e.widget.config(fg="black"))
+            
+            def abrir_enlace(event):
+                webbrowser.open(enlace)
+                         
+            label_jugador_destacado.bind("<Button-1>", abrir_enlace)  
+      
         return frame_descripcion
     
 
